@@ -18,7 +18,6 @@ class MainActivity : AppCompatActivity() {
             startActivity(i)
         })
 
-
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

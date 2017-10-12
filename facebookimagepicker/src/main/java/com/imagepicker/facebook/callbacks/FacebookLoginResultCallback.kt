@@ -16,7 +16,6 @@ class FacebookLoginResultCallback constructor(
 
     override fun onSuccess(loginResult: LoginResult) {
         Log.d(FacebookCallFactory.TAG, "onSuccess( loginResult = " + loginResult.toString() + " )")
-        //todo -this part is not working
         newAccessToken()
     }
 

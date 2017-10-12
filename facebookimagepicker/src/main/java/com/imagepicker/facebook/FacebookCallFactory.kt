@@ -42,7 +42,6 @@ constructor(private val mActivity: Activity) {
 
     internal fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
         val accessToken = AccessToken.getCurrentAccessToken()
-        //todo - make sure DATA is not null!
         FacebookLoginRequest.getInstance(pendingRequest, mActivity).onActivityResult(requestCode, resultCode, data)
     }
 

@@ -3,37 +3,49 @@ package com.imagepicker.facebook.view.photos
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.StaggeredGridLayoutManager
 import android.util.Log
+import android.view.MenuItem
 import com.imagepicker.facebook.FacebookCallFactory
 import com.imagepicker.facebook.facebookimagepicker.R
 import com.imagepicker.facebook.model.FacebookPhoto
+import com.imagepicker.facebook.view.BaseRecyclerAdapter
 import com.imagepicker.facebook.view.albums.FacebookAlbumsActivity
 
 /**
  * @author james on 10/11/17.
  */
 
-class FacebookPhotosActivity : Activity(), FacebookCallFactory.PhotosCallback {
+class FacebookPhotosActivity : AppCompatActivity(), FacebookCallFactory.PhotosCallback, BaseRecyclerAdapter.EndlessScrollListener {
+
     val TAG: String = FacebookAlbumsActivity::class.java.simpleName
 
     lateinit var facebookCallFactory: FacebookCallFactory
     lateinit var recyclerView: RecyclerView
     lateinit var adapter: FacebookPhotosAdapter
     var albumId: String? = null
+    var albumTitle: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_facebook_album_gallery)
-        recyclerView = findViewById(R.id.facebook_recycler_view)
-        facebookCallFactory = FacebookCallFactory.getInstance(this@FacebookPhotosActivity)
-        adapter = FacebookPhotosAdapter()
         val extras = intent.extras
         if (extras != null) {
             albumId = extras.getString(FacebookAlbumsActivity().FACEBOOK_ALBUM_ID)
+            albumTitle = extras.getString(FacebookAlbumsActivity().FACEBOOK_ALBUM_TITLE)
         }
-        // use a linear layout manager
+
+        supportActionBar?.setDisplayHomeAsUpEnabled(true);
+        supportActionBar?.title = albumTitle
+
+        recyclerView = findViewById(R.id.facebook_recycler_view)
+        facebookCallFactory = FacebookCallFactory.getInstance(this@FacebookPhotosActivity)
+        adapter = FacebookPhotosAdapter()
+        adapter.setEndlessScrollListener(this@FacebookPhotosActivity)
+
+
         val layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = adapter
@@ -46,6 +58,22 @@ class FacebookPhotosActivity : Activity(), FacebookCallFactory.PhotosCallback {
         facebookCallFactory.onActivityResult(requestCode, resultCode, data)
     }
 
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when (item?.getItemId()) {
+            android.R.id.home -> {
+                this.finish()
+                return true
+            }
+            else -> return super.onOptionsItemSelected(item)
+        }
+    }
+
+    override fun onLoadMore() {
+        //todo- pagination is not working properly!
+//        if (albumId != null)
+//            facebookCallFactory.getPhotos(albumId!!, this)
+    }
+
     override fun onError(exception: Exception) {
         //todo
     }
@@ -56,12 +84,8 @@ class FacebookPhotosActivity : Activity(), FacebookCallFactory.PhotosCallback {
 
     override fun onPhotosSuccess(facebookPhotoList: List<FacebookPhoto>, morePhotos: Boolean) {
         Log.d(TAG, facebookPhotoList.toString())
-        //todo -add an on scroll listener and request next page if morePhotos is true
-        adapter.addAllItems(facebookPhotoList as MutableList<FacebookPhoto>)
-//        if (morePhotos && albumId != null) {
-//            facebookCallFactory.getPhotos(albumId!!, this)
-//        }
+        adapter.loadMoreItems = morePhotos
+        adapter.addItems(facebookPhotoList as MutableList<FacebookPhoto>)
     }
-
 
 }

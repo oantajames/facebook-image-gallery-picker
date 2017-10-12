@@ -34,7 +34,6 @@ class FacebookPhotosRequestCallback constructor(
     val JSON_NAME_PICTURE = "picture"
     val JSON_NAME_IMAGES = "images"
     val JSON_NAME_WIDTH = "width"
-    val JSON_NAME_HEIGHT = "height"
     val JSON_NAME_SOURCE = "source"
 
     override fun onCompleted(graphResponse: GraphResponse) {
@@ -84,7 +83,7 @@ class FacebookPhotosRequestCallback constructor(
             when (error.category) {
                 FacebookRequestError.Category.LOGIN_RECOVERABLE -> {
 
-                    Log.e(FacebookCallFactory.TAG, "Resolving LOGIN_RECOVERABLE error")
+                    Log.e(FacebookCallFactory.TAG, "LOGIN_RECOVERABLE ERROR")
                     pendingRequest = FacebookPhotosRequest(albumId, pendingRequest, nextGraphRequest, photosCallback, activity)
                     LoginManager.getInstance().resolveError(activity, graphResponse)
                     return true

@@ -13,14 +13,15 @@ import com.imagepicker.facebook.facebookimagepicker.R
 import com.squareup.picasso.Picasso
 import android.view.LayoutInflater
 import com.imagepicker.facebook.model.FacebookAlbum
+import com.imagepicker.facebook.view.BaseRecyclerAdapter
 
 /**
  * @author james on 10/11/17.
  */
-class FacebookAlbumsAdapter constructor(var albumAction: AlbumAction) : RecyclerView.Adapter<FacebookAlbumsAdapter.ViewHolder>() {
+class FacebookAlbumsAdapter constructor(var albumAction: AlbumAction) : BaseRecyclerAdapter<FacebookAlbumsAdapter.ViewHolder, FacebookAlbum>() {
 
     interface AlbumAction {
-        fun onAlbumClicked(albumId: String)
+        fun onAlbumClicked(albumItem: FacebookAlbum)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): ViewHolder {
@@ -29,26 +30,18 @@ class FacebookAlbumsAdapter constructor(var albumAction: AlbumAction) : Recycler
         return ViewHolder(itemView)
     }
 
-    var albumList: MutableList<FacebookAlbum> = mutableListOf<FacebookAlbum>()
-
-    fun addAllItems(list: MutableList<FacebookAlbum>) {
-        albumList.addAll(list)
-        notifyDataSetChanged()
-    }
-
-    override fun onBindViewHolder(holder: ViewHolder?, position: Int) {
-        if (holder != null) {
-            val item = albumList.get(position)
-            holder.setItem(item)
+    override fun onBindViewHolder(holder: ViewHolder, itemData: FacebookAlbum?, position: Int) {
+        if (itemData != null) {
+            holder.setItem(itemData)
             holder.bindViews()
             holder.albumView.setOnClickListener {
-                albumAction.onAlbumClicked(albumList[position].albumId)
+                albumAction.onAlbumClicked(itemData)
             }
         }
     }
 
     override fun getItemCount(): Int {
-        return albumList.size
+        return getItemList().count()
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

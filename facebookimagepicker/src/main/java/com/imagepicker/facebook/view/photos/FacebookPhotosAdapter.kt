@@ -8,36 +8,29 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import com.imagepicker.facebook.facebookimagepicker.R
 import com.imagepicker.facebook.model.FacebookPhoto
+import com.imagepicker.facebook.view.BaseRecyclerAdapter
 import com.squareup.picasso.Picasso
 
 /**
  * @author james on 10/11/17.
  */
-class FacebookPhotosAdapter : RecyclerView.Adapter<FacebookPhotosAdapter.ViewHolder>() {
+class FacebookPhotosAdapter : BaseRecyclerAdapter<FacebookPhotosAdapter.ViewHolder, FacebookPhoto>() {
 
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): ViewHolder {
         val itemView = LayoutInflater.from(parent!!.context)
-                .inflate(R.layout.item_facebook_album, parent, false)
+                .inflate(R.layout.item_facebook_photo, parent, false)
         return ViewHolder(itemView)
     }
 
-    var albumList: MutableList<FacebookPhoto> = mutableListOf<FacebookPhoto>()
-
-    fun addAllItems(list: MutableList<FacebookPhoto>) {
-        albumList.addAll(list)
-        notifyDataSetChanged()
-    }
-
-    override fun onBindViewHolder(holder: ViewHolder?, position: Int) {
-        if (holder != null) {
-            val item = albumList.get(position)
-            holder.setItem(item)
+    override fun onBindViewHolder(holder: ViewHolder, itemData: FacebookPhoto?, position: Int) {
+        if (itemData != null) {
+            holder.setItem(itemData)
             holder.bindView()
         }
     }
 
     override fun getItemCount(): Int {
-        return albumList.size
+        return getItemList().count()
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -48,11 +41,11 @@ class FacebookPhotosAdapter : RecyclerView.Adapter<FacebookPhotosAdapter.ViewHol
             photoItem = item
         }
 
-        private var imageView: ImageView = itemView.findViewById(R.id.facebook_cover_photo)
+        private var imageView: ImageView = itemView.findViewById(R.id.facebook_photo)
 
         fun bindView() {
             Picasso.with(itemView.context)
-                    .load(Uri.parse(photoItem.thumbnailUrl.toURI().toString()))
+                    .load(Uri.parse(photoItem.photoUrl.toURI().toString()))
                     .fit()
                     .centerCrop()
                     .into(imageView)

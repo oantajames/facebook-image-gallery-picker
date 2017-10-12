@@ -47,7 +47,7 @@ class FacebookPhotosRequest constructor(
 
         val request = GraphRequest(
                 AccessToken.getCurrentAccessToken(),
-                GRAPH_PATH_ME_PHOTOS,
+                "/" + albumId + "/photos",
                 parameters,
                 HttpMethod.GET,
                 photosGraphRequestCallback)
