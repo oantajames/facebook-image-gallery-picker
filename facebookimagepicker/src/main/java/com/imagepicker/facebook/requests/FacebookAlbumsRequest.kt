@@ -2,6 +2,7 @@ package com.imagepicker.facebook.requests
 
 import android.app.Activity
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
 import com.facebook.AccessToken
 import com.facebook.GraphRequest
 import com.facebook.HttpMethod
@@ -16,7 +17,7 @@ class FacebookAlbumsRequest constructor(
         private var pendingRequest: BaseGraphRequest<*>?,
         private var nextGraphRequest: GraphRequest?,
         private var albumsCallback: FacebookCallFactory.AlbumsCallback?,
-        private val activity: Activity
+        private val activity: AppCompatActivity
 ) : BaseGraphRequest<FacebookCallFactory.AlbumsCallback>(albumsCallback) {
 
     private val GRAPH_PATH_ME_ALBUMS = "me/albums"

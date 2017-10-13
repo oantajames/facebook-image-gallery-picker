@@ -1,8 +1,8 @@
 package com.imagepicker.facebook.view.photos
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.StaggeredGridLayoutManager
@@ -55,7 +55,7 @@ class FacebookPhotosActivity : AppCompatActivity(), FacebookCallFactory.PhotosCa
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
         super.onActivityResult(requestCode, resultCode, data)
-        facebookCallFactory.onActivityResult(requestCode, resultCode, data)
+        facebookCallFactory.onActivityResult(requestCode, resultCode, data, this@FacebookPhotosActivity)
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
@@ -75,11 +75,12 @@ class FacebookPhotosActivity : AppCompatActivity(), FacebookCallFactory.PhotosCa
     }
 
     override fun onError(exception: Exception) {
-        //todo
+        val snackbar = Snackbar.make(recyclerView, "Ups! Something wrong happened, please try again.", Snackbar.LENGTH_LONG)
+        snackbar.show()
     }
 
     override fun onCancel() {
-        //todo
+        this.finish()
     }
 
     override fun onPhotosSuccess(facebookPhotoList: List<FacebookPhoto>, morePhotos: Boolean) {

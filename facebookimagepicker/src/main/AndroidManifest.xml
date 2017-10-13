@@ -6,11 +6,13 @@
 
         <activity
             android:name="com.imagepicker.facebook.view.albums.FacebookAlbumsActivity"
+            android:launchMode="standard"
             android:screenOrientation="portrait"
             android:theme="@style/ImagePickerTheme"/>
 
         <activity
             android:name="com.imagepicker.facebook.view.photos.FacebookPhotosActivity"
+            android:launchMode="standard"
             android:screenOrientation="portrait"
             android:theme="@style/ImagePickerTheme"/>
 

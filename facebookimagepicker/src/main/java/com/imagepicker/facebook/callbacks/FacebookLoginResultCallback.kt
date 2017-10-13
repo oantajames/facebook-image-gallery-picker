@@ -5,7 +5,6 @@ import com.facebook.FacebookCallback
 import com.facebook.FacebookException
 import com.facebook.login.LoginResult
 import com.imagepicker.facebook.BaseGraphRequest
-import com.imagepicker.facebook.FacebookCallFactory
 
 /**
  * @author james on 10/11/17.
@@ -13,21 +12,22 @@ import com.imagepicker.facebook.FacebookCallFactory
 class FacebookLoginResultCallback constructor(
         var pendingRequest: BaseGraphRequest<*>?
 ) : FacebookCallback<LoginResult> {
+    private val TAG = FacebookLoginResultCallback::class.java.simpleName
 
     override fun onSuccess(loginResult: LoginResult) {
-        Log.d(FacebookCallFactory.TAG, "onSuccess( loginResult = " + loginResult.toString() + " )")
+        Log.d(TAG, "onSuccess( loginResult = " + loginResult.toString() + " )")
         newAccessToken()
     }
 
     override fun onCancel() {
-        Log.d(FacebookCallFactory.TAG, "onCancel()")
+        Log.d(TAG, "onCancel()")
         if (pendingRequest != null) {
             pendingRequest!!.onCancel()
         }
     }
 
     override fun onError(facebookException: FacebookException) {
-        Log.d(FacebookCallFactory.TAG, "onError( facebookException = $facebookException)", facebookException)
+        Log.d(TAG, "onError( facebookException = $facebookException)", facebookException)
         if (pendingRequest != null) {
             pendingRequest!!.onError(facebookException)
         }

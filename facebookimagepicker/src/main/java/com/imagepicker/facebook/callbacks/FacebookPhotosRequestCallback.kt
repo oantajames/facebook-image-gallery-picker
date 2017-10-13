@@ -1,6 +1,7 @@
 package com.imagepicker.facebook.callbacks
 
 import android.app.Activity
+import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import com.facebook.FacebookRequestError
 import com.facebook.GraphRequest
@@ -26,7 +27,7 @@ class FacebookPhotosRequestCallback constructor(
         var pendingRequest: BaseGraphRequest<*>?,
         var nextGraphRequest: GraphRequest?,
         private val photosCallback: FacebookCallFactory.PhotosCallback?,
-        val activity: Activity
+        val activity: AppCompatActivity
 ) : GraphRequest.Callback {
 
     val TAG = FacebookPhotosRequestCallback::class.java.toString()
@@ -34,10 +35,11 @@ class FacebookPhotosRequestCallback constructor(
     val JSON_NAME_PICTURE = "picture"
     val JSON_NAME_IMAGES = "images"
     val JSON_NAME_WIDTH = "width"
+    val JSON_NAME_HEIGHT = "height"
     val JSON_NAME_SOURCE = "source"
 
     override fun onCompleted(graphResponse: GraphResponse) {
-        Log.d(FacebookCallFactory.TAG, "Graph response: " + graphResponse)
+        Log.d(TAG, "Graph response: " + graphResponse)
         val error = graphResponse.error
         if (checkForErrors(error, graphResponse)) return
 
@@ -47,7 +49,7 @@ class FacebookPhotosRequestCallback constructor(
 
     private fun getResponseData(responseJSONObject: JSONObject?, graphResponse: GraphResponse) {
         if (responseJSONObject != null) {
-            Log.d(FacebookCallFactory.TAG, "Response object: " + responseJSONObject.toString())
+            Log.d(TAG, "Response object: " + responseJSONObject.toString())
             val dataJSONArray = responseJSONObject.optJSONArray(FacebookCallFactory.JSON_NAME_DATA)
             val photoArrayList = ArrayList<FacebookPhoto>(dataJSONArray.length())
             for (photoIndex in 0 until dataJSONArray.length()) {
@@ -63,9 +65,9 @@ class FacebookPhotosRequestCallback constructor(
 
                     photoArrayList.add(photo)
                 } catch (je: JSONException) {
-                    Log.e(FacebookCallFactory.TAG, "Unable to extract photo data from JSON: " + responseJSONObject.toString(), je)
+                    Log.e(TAG, "Unable to extract photo data from JSON: " + responseJSONObject.toString(), je)
                 } catch (mue: MalformedURLException) {
-                    Log.e(FacebookCallFactory.TAG, "Invalid URL in JSON: " + responseJSONObject.toString(), mue)
+                    Log.e(TAG, "Invalid URL in JSON: " + responseJSONObject.toString(), mue)
                 }
 
             }
@@ -73,7 +75,7 @@ class FacebookPhotosRequestCallback constructor(
             if (photosCallback != null)
                 photosCallback.onPhotosSuccess(photoArrayList, nextGraphRequest != null)
         } else {
-            Log.e(FacebookCallFactory.TAG, "No JSON found in graph response")
+            Log.e(TAG, "No JSON found in graph response")
         }
     }
 
@@ -83,7 +85,7 @@ class FacebookPhotosRequestCallback constructor(
             when (error.category) {
                 FacebookRequestError.Category.LOGIN_RECOVERABLE -> {
 
-                    Log.e(FacebookCallFactory.TAG, "LOGIN_RECOVERABLE ERROR")
+                    Log.e(TAG, "LOGIN_RECOVERABLE ERROR")
                     pendingRequest = FacebookPhotosRequest(albumId, pendingRequest, nextGraphRequest, photosCallback, activity)
                     LoginManager.getInstance().resolveError(activity, graphResponse)
                     return true

@@ -3,6 +3,7 @@ package com.imagepicker.facebook
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
+import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import com.facebook.*
 import com.imagepicker.facebook.model.FacebookAlbum
@@ -12,44 +13,49 @@ import com.imagepicker.facebook.requests.FacebookLoginRequest
 import com.imagepicker.facebook.requests.FacebookPhotosRequest
 
 class FacebookCallFactory
-constructor(private val mActivity: Activity) {
+private constructor(private var activity: AppCompatActivity) {
+    //todo - look over this freaking part!
+    val TAG = "FacebookCallFactory"
+
 
     private var nextGraphRequest: GraphRequest? = null
-    private var pendingRequest: BaseGraphRequest<*>? = null
+    var pendingRequest: BaseGraphRequest<*>? = null
     private var currentAlbumId: String? = null
 
-    init {
-        FacebookSdk.sdkInitialize(mActivity.applicationContext)
-    }
 
-    companion object {
-
-        val TAG = "FacebookCallFactory"
-
+    companion object : SingletonHolder<FacebookCallFactory, AppCompatActivity>(::FacebookCallFactory) {
         val JSON_NAME_DATA = "data"
         val JSON_NAME_ID = "id"
-
-        @SuppressLint("StaticFieldLeak")
-        private var facebookCallFactory: FacebookCallFactory? = null
-
-        fun getInstance(activity: Activity): FacebookCallFactory {
-            if (facebookCallFactory == null) {
-                facebookCallFactory = FacebookCallFactory(activity)
-            }
-            return facebookCallFactory!!
-        }
     }
 
-    internal fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+//    companion object {
+//
+//        val JSON_NAME_DATA = "data"
+//        val JSON_NAME_ID = "id"
+//
+//        @SuppressLint("StaticFieldLeak")
+//        private var facebookCallFactory: FacebookCallFactory? = null
+//
+//        fun getInstance(activity: AppCompatActivity): FacebookCallFactory {
+//            if (facebookCallFactory == null) {
+//                facebookCallFactory = FacebookCallFactory(activity)
+//            }
+//            if (facebookCallFactory!!.activity != activity)
+//                facebookCallFactory!!.activity = activity;
+//            return facebookCallFactory!!
+//        }
+//    }
+
+    internal fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent, activity: AppCompatActivity) {
         val accessToken = AccessToken.getCurrentAccessToken()
-        FacebookLoginRequest.getInstance(pendingRequest, mActivity).onActivityResult(requestCode, resultCode, data)
+        FacebookLoginRequest.getInstance(activity).onActivityResult(requestCode, resultCode, data)
     }
 
     fun executeRequest(request: BaseGraphRequest<*>) {
         // If we don't have an access token - make a log-in request.
         val accessToken = AccessToken.getCurrentAccessToken()
-        val loginRequest = FacebookLoginRequest.getInstance(pendingRequest, mActivity)
-        if (loginRequest.startedLoginProcess(request, accessToken)) return
+        val loginRequest = FacebookLoginRequest.getInstance(activity)
+        if (loginRequest.startedLoginProcess(request, accessToken, pendingRequest, activity)) return
 
         //todo - maybe create an AccessTokenVerification class for managing all this part
         //Check if the access token has expired
@@ -61,12 +67,12 @@ constructor(private val mActivity: Activity) {
                 return
             }
         }
-        // We have a valid access token, so execute the request
+        // Valid acces toke - > Execute request
         request.onExecute()
     }
 
     fun getAlbums(albumsCallback: AlbumsCallback?) {
-        val albumsRequest = FacebookAlbumsRequest(pendingRequest, nextGraphRequest, albumsCallback, mActivity)
+        val albumsRequest = FacebookAlbumsRequest(pendingRequest, nextGraphRequest, albumsCallback, activity)
         executeRequest(albumsRequest)
     }
 
@@ -76,7 +82,7 @@ constructor(private val mActivity: Activity) {
                 pendingRequest,
                 nextGraphRequest,
                 photosCallback,
-                mActivity)
+                activity)
         executeRequest(photosRequest)
     }
 
