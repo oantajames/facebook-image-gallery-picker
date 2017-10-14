@@ -17,13 +17,11 @@ import java.util.*
 /**
  * @author james on 10/11/17.
  */
-class FacebookLoginRequest private constructor(activity: AppCompatActivity){
+class FacebookLoginRequest private constructor(activity: AppCompatActivity) {
 
     companion object : SingletonHolder<FacebookLoginRequest, AppCompatActivity>(::FacebookLoginRequest)
 
-    //todo - check what happens if user doenst allow all permisions from facebook user_photos
-//    companion object {
-//        //todo - find a better solution for this part! -maybe move the callback manager and pass it here as an argumnet to the class constructor
+    //    companion object {
 //        @SuppressLint("StaticFieldLeak")
 //        private var INSTANCE: com.imagepicker.facebook.requests.FacebookLoginRequest? = null
 //
@@ -36,7 +34,6 @@ class FacebookLoginRequest private constructor(activity: AppCompatActivity){
 //            return INSTANCE!!
 //        }
 //    }
-
     private val PERMISSION_USER_PHOTOS = "user_photos"
 
     var callbackManager: CallbackManager = CallbackManager.Factory.create()
@@ -45,23 +42,11 @@ class FacebookLoginRequest private constructor(activity: AppCompatActivity){
         callbackManager.onActivityResult(requestCode, resultCode, data)
     }
 
-    fun startedLoginProcess(request: BaseGraphRequest<*>,
-                            accessToken: AccessToken?,
-                            pendingRequest: BaseGraphRequest<*>?,
-                            activity: AppCompatActivity): Boolean {
-        if (accessToken == null || accessToken.userId == null) {
-            //TODO - LOOOK HERE !
-            val loginManager = LoginManager.getInstance()
-            //don't modify this to VAL otherwise the activity that implements the callback will be STATIC! ==> Memory leak!
-            var callback = FacebookLoginResultCallback(pendingRequest)
-            loginManager.registerCallback(callbackManager, callback)
-            FacebookCallFactory.getInstance(activity).pendingRequest = request
-//            pendingRequest = request
-            loginManager.logInWithReadPermissions(activity, Arrays.asList(PERMISSION_USER_PHOTOS))
-            return true
-        } else {
-            return false
-        }
-    }
+    fun startLogin(activity: AppCompatActivity, loginResultCallback: FacebookLoginResultCallback) {
+        val loginManager = LoginManager.getInstance()
+        //don't modify this to VAL otherwise the activity that implements the callback will be STATIC! ==> Memory leak!
+        loginManager.registerCallback(callbackManager, loginResultCallback)
 
+        loginManager.logInWithReadPermissions(activity, Arrays.asList(PERMISSION_USER_PHOTOS))
+    }
 }

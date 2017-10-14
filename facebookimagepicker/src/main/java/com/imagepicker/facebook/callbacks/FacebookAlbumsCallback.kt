@@ -21,13 +21,17 @@ import java.util.ArrayList
  * @author james on 10/11/17.
  */
 
-class FacebookAlbumsCallback
-constructor(
-        private var pendingRequest: BaseGraphRequest<*>?,
-        private var nextGraphRequest: GraphRequest?,
-        private val albumsCallback: FacebookCallFactory.AlbumsCallback?,
-        private val activity: AppCompatActivity
+open class FacebookAlbumsCallback constructor(
+        val albumsCallback: FacebookCallFactory.AlbumsCallback?,
+        val activity: AppCompatActivity,
+        val callbackStatus: AlbumsCallbackStatus
 ) : GraphRequest.Callback {
+
+    //used to tell the job that it is finished or to reschedule the job if an error ocurred
+    interface AlbumsCallbackStatus {
+        fun onComplete()
+        fun onError()
+    }
 
     private val TAG = FacebookAlbumsCallback::class.java.simpleName
     private val JSON_NAME_ALBUM_NAME = "name"
@@ -41,6 +45,7 @@ constructor(
 
         val responseJSONObject = graphResponse.jsonObject
         getResponseData(responseJSONObject, graphResponse)
+        callbackStatus.onComplete()
     }
 
     private fun checkForErrors(error: FacebookRequestError?, graphResponse: GraphResponse): Boolean {
@@ -49,17 +54,19 @@ constructor(
             when (error.category) {
                 FacebookRequestError.Category.LOGIN_RECOVERABLE -> {
                     Log.e(TAG, "Attempting to resolve LOGIN_RECOVERABLE error")
-                    pendingRequest = FacebookAlbumsRequest(pendingRequest, nextGraphRequest, albumsCallback, activity)
                     LoginManager.getInstance().resolveError(activity, graphResponse)
+                    callbackStatus.onError()
                     return true
                 }
                 FacebookRequestError.Category.TRANSIENT -> {
                     FacebookCallFactory.getInstance(activity).getAlbums(albumsCallback)
+                    callbackStatus.onError()
                     return true
                 }
                 else -> {
                     if (albumsCallback != null)
                         albumsCallback.onError(error.exception)
+                    callbackStatus.onError()
                     return true
                 }
             }
@@ -89,9 +96,10 @@ constructor(
                     Log.e(TAG, "Invalid URL in JSON: " + responseJSONObject.toString(), mue)
                 }
             }
-            nextGraphRequest = graphResponse.getRequestForPagedResults(GraphResponse.PagingDirection.NEXT)
+            //check if there are more pages - see FB docs for the GRAPH API
+            val request = graphResponse.getRequestForPagedResults(GraphResponse.PagingDirection.NEXT)
             if (albumsCallback != null)
-                albumsCallback.onAlbumsSuccess(albumsList, nextGraphRequest != null)
+                albumsCallback.onAlbumsSuccess(albumsList, request != null)
         } else {
             Log.e(TAG, "No JSON found in graph response")
         }

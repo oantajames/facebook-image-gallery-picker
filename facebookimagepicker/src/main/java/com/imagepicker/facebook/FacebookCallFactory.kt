@@ -1,7 +1,5 @@
 package com.imagepicker.facebook
 
-import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
@@ -55,7 +53,7 @@ private constructor(private var activity: AppCompatActivity) {
         // If we don't have an access token - make a log-in request.
         val accessToken = AccessToken.getCurrentAccessToken()
         val loginRequest = FacebookLoginRequest.getInstance(activity)
-        if (loginRequest.startedLoginProcess(request, accessToken, pendingRequest, activity)) return
+        if (loginRequest.startLogin(request, accessToken, pendingRequest, activity)) return
 
         //todo - maybe create an AccessTokenVerification class for managing all this part
         //Check if the access token has expired

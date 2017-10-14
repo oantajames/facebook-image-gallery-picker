@@ -16,4 +16,5 @@ internal constructor(private var mCallback: T?) {
     internal fun onCancel() {
         if (mCallback != null) mCallback!!.onCancel()
     }
+
 }
