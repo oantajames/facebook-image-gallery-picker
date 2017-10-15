@@ -27,7 +27,6 @@ import com.imagepicker.facebook.view.photos.FacebookPhotosActivity
  * @author james on 10/9/17.
  */
 class FacebookAlbumsActivity : AppCompatActivity(),
-        FacebookCallFactory.AlbumsCallback,
         FacebookAlbumsAdapter.AlbumAction,
         BaseRecyclerAdapter.EndlessScrollListener {
 
@@ -40,7 +39,7 @@ class FacebookAlbumsActivity : AppCompatActivity(),
     lateinit var recyclerView: RecyclerView
     lateinit var adapter: FacebookAlbumsAdapter
     lateinit var retryButton: Button
-    var bollean: Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_facebook_album_gallery)
@@ -61,26 +60,6 @@ class FacebookAlbumsActivity : AppCompatActivity(),
         initAdapter()
         facebookJobManager.getAlbums()
     }
-
-    private val broadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val action = intent.action
-            if (action == AlbumsJob.SEND_ALBUM_LIST_BROADCAST) {
-                if (intent.extras != null) {
-                    val list: ArrayList<FacebookAlbum> = intent.extras.getParcelableArrayList(AlbumsJob.ALBUMS_LIST)
-                    bollean = false
-                    if (retryButton.visibility == View.VISIBLE)
-                        retryButton.visibility = View.GONE
-                    Log.d(TAG, list.toString())
-                    adapter.loadMoreItems = intent.extras.getBoolean(AlbumsJob.HAS_MORES_PAGES)
-                    adapter.addItems(list as MutableList <FacebookAlbum>)
-                }
-            } else {
-                Log.e(TAG, "Bundle has no extras!")
-            }
-        }
-    }
-
 
     private fun registerReceiver() {
         val intentFilter = IntentFilter()
@@ -128,25 +107,42 @@ class FacebookAlbumsActivity : AppCompatActivity(),
         // facebookJobManager.getAlbums(this)
     }
 
-    override fun onError(exception: Exception) {
-        retryButton.visibility = View.VISIBLE
-        val snackbar = Snackbar.make(recyclerView, "Ups! Something wrong happened, please try again.", Snackbar.LENGTH_LONG)
-        snackbar.show()
-    }
-
-    override fun onCancel() {
-        retryButton.visibility = View.VISIBLE
-    }
-
-    override fun onAlbumsSuccess(albumsList: List<FacebookAlbum>, moreAlbums: Boolean) {
-
-    }
+//    override fun onError(exception: Exception) {
+//        retryButton.visibility = View.VISIBLE
+//        val snackbar = Snackbar.make(recyclerView, "Ups! Something wrong happened, please try again.", Snackbar.LENGTH_LONG)
+//        snackbar.show()
+//    }
+//
+//    override fun onCancel() {
+//        retryButton.visibility = View.VISIBLE
+//    }
 
     override fun onAlbumClicked(albumItem: FacebookAlbum) {
         val intent = Intent(baseContext, FacebookPhotosActivity::class.java)
         intent.putExtra(FACEBOOK_ALBUM_ID, albumItem.albumId)
         intent.putExtra(FACEBOOK_ALBUM_TITLE, albumItem.albumTitle)
         startActivity(intent)
+    }
+
+    private val broadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            //todo - handle on error
+            //todo - add progress bar
+            val action = intent.action
+            if (action == AlbumsJob.SEND_ALBUM_LIST_BROADCAST) {
+                if (intent.extras != null) {
+                    val list: ArrayList<FacebookAlbum> = intent.extras.getParcelableArrayList(AlbumsJob.ALBUMS_LIST)
+                    //todo - remove the button and destroy instead the activity and show a toast/snacbak to retry
+                    if (retryButton.visibility == View.VISIBLE)
+                        retryButton.visibility = View.GONE
+                    Log.d(TAG, list.toString())
+                    adapter.loadMoreItems = intent.extras.getBoolean(AlbumsJob.HAS_MORES_PAGES)
+                    adapter.addItems(list as MutableList <FacebookAlbum>)
+                }
+            } else {
+                Log.e(TAG, "Bundle has no extras!")
+            }
+        }
     }
 
 }

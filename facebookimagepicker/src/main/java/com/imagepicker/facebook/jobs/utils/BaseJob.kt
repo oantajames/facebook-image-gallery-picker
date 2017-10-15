@@ -1,6 +1,5 @@
 package com.imagepicker.facebook.jobs.utils
 
-import android.support.v7.app.AppCompatActivity
 import com.firebase.jobdispatcher.JobParameters
 import com.firebase.jobdispatcher.JobService
 
@@ -25,6 +24,7 @@ abstract class BaseJob : JobService() {
     }
 
     override fun onStartJob(p0: JobParameters?): Boolean {
+        //todo - maybe execute onJobStart on a background thread
         return onJobStart(p0)
     }
 

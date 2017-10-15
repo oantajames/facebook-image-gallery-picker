@@ -18,6 +18,7 @@ class PhotosJob : BaseJob() {
     companion object {
         val PHOTOS_LIST = "PHOTOS_LIST"
         val HAS_MORES_PAGES = "HAS_MORE_PAGES"
+        val SEND_PHOTOS_LIST_BROADCAST = "SEND_PHOTOS_LIST_BROADCAST"
     }
 
     override fun onJobStart(jobParameters: JobParameters?): Boolean {
@@ -29,11 +30,10 @@ class PhotosJob : BaseJob() {
                     override fun onComplete(list: ArrayList<FacebookPhoto>, hasMorePages: Boolean) {
                         val bundle = Bundle()
                         bundle.putParcelableArrayList(PHOTOS_LIST, list)
-                        val intent = Intent()
+                        val intent = Intent(SEND_PHOTOS_LIST_BROADCAST)
                         intent.putExtras(bundle)
                         intent.putExtra(HAS_MORES_PAGES, hasMorePages)
                         LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
-                        //todo:register in the manifest the broadcast receiver
                         jobFinished(jobParameters!!, false)
                     }
 

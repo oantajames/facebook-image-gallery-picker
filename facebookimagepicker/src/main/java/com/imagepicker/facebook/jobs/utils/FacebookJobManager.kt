@@ -6,10 +6,7 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import com.facebook.AccessToken
-import com.facebook.FacebookException
-import com.facebook.login.LoginResult
 import com.firebase.jobdispatcher.*
-import com.imagepicker.facebook.callbacks.FacebookLoginResultCallback
 import com.imagepicker.facebook.jobs.AlbumsJob
 import com.imagepicker.facebook.jobs.LoginJob
 import com.imagepicker.facebook.jobs.PhotosJob
@@ -88,11 +85,11 @@ class FacebookJobManager private constructor() {
     }
 
     internal fun startVerifyAccessTokenJob(albumId: String) {
+        currentAlbumId = albumId
         val verifyTokenJob: Job? = dispatcher.newJobBuilder()
                 .setService(VerifyAccessTokenJob::class.java)
                 .setTag("Verify_access_Token")
                 .setLifetime(Lifetime.FOREVER)
-                .setExtras(putAlbumId(albumId))
                 .setTrigger(Trigger.executionWindow(0, 0))
                 .build()
         //todo : set job constraints regarding the network
@@ -125,6 +122,7 @@ class FacebookJobManager private constructor() {
         val photosJob: Job? = dispatcher.newJobBuilder()
                 .setService(PhotosJob::class.java)
                 .setTag(PHOTOS_JOB)
+                .setExtras(putAlbumId(currentAlbumId))
                 .setTrigger(Trigger.executionWindow(0, 0))
                 .build()
         //todo : set job constraints regarding the network
