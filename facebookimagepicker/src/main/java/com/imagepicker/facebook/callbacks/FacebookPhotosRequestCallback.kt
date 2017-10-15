@@ -24,11 +24,15 @@ import java.util.ArrayList
 
 class FacebookPhotosRequestCallback constructor(
         var albumId: String,
-        var pendingRequest: BaseGraphRequest<*>?,
-        var nextGraphRequest: GraphRequest?,
         private val photosCallback: FacebookCallFactory.PhotosCallback?,
-        val activity: AppCompatActivity
+        val activity: AppCompatActivity,
+        val callbackStatus: PhotosCallbackStatus
 ) : GraphRequest.Callback {
+
+    interface PhotosCallbackStatus {
+        fun onComplete()
+        fun onError()
+    }
 
     val TAG = FacebookPhotosRequestCallback::class.java.toString()
 
@@ -71,9 +75,10 @@ class FacebookPhotosRequestCallback constructor(
                 }
 
             }
-            nextGraphRequest = graphResponse.getRequestForPagedResults(GraphResponse.PagingDirection.NEXT)
+            var nextGraphRequest = graphResponse.getRequestForPagedResults(GraphResponse.PagingDirection.NEXT)
             if (photosCallback != null)
                 photosCallback.onPhotosSuccess(photoArrayList, nextGraphRequest != null)
+            callbackStatus.onComplete()
         } else {
             Log.e(TAG, "No JSON found in graph response")
         }
@@ -84,19 +89,21 @@ class FacebookPhotosRequestCallback constructor(
             Log.e(TAG, "Facebook error: " + error.toString())
             when (error.category) {
                 FacebookRequestError.Category.LOGIN_RECOVERABLE -> {
-
                     Log.e(TAG, "LOGIN_RECOVERABLE ERROR")
-                    pendingRequest = FacebookPhotosRequest(albumId, pendingRequest, nextGraphRequest, photosCallback, activity)
                     LoginManager.getInstance().resolveError(activity, graphResponse)
+                    callbackStatus.onError()
                     return true
                 }
                 FacebookRequestError.Category.TRANSIENT -> {
+                    //todo : is it required to retry this here ? move the logic to the FaceookJobScheduler and handle it there
                     FacebookCallFactory.getInstance(activity).getPhotos(albumId, photosCallback)
+                    callbackStatus.onError()
                     return true
                 }
                 else -> {
                     if (photosCallback != null)
                         photosCallback.onError(error.exception)
+                    callbackStatus.onError()
                     return true
                 }
             }

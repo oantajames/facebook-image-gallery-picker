@@ -1,6 +1,5 @@
 package com.imagepicker.facebook.callbacks
 
-import android.app.Activity
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import com.facebook.AccessToken
@@ -8,10 +7,8 @@ import com.facebook.FacebookRequestError
 import com.facebook.GraphRequest
 import com.facebook.GraphResponse
 import com.facebook.login.LoginManager
-import com.imagepicker.facebook.BaseGraphRequest
 import com.imagepicker.facebook.FacebookCallFactory
 import com.imagepicker.facebook.model.FacebookAlbum
-import com.imagepicker.facebook.requests.FacebookAlbumsRequest
 import org.json.JSONException
 import org.json.JSONObject
 import java.net.MalformedURLException
@@ -21,7 +18,7 @@ import java.util.ArrayList
  * @author james on 10/11/17.
  */
 
-open class FacebookAlbumsCallback constructor(
+open class FacebookAlbumsRequestCallback constructor(
         val albumsCallback: FacebookCallFactory.AlbumsCallback?,
         val activity: AppCompatActivity,
         val callbackStatus: AlbumsCallbackStatus
@@ -33,7 +30,7 @@ open class FacebookAlbumsCallback constructor(
         fun onError()
     }
 
-    private val TAG = FacebookAlbumsCallback::class.java.simpleName
+    private val TAG = FacebookAlbumsRequestCallback::class.java.simpleName
     private val JSON_NAME_ALBUM_NAME = "name"
     private val JSON_NAME_ALBUM_PHOTOS_COUNT = "count"
 

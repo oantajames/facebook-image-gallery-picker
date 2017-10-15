@@ -15,11 +15,9 @@ private constructor(private var activity: AppCompatActivity) {
     //todo - look over this freaking part!
     val TAG = "FacebookCallFactory"
 
-
     private var nextGraphRequest: GraphRequest? = null
     var pendingRequest: BaseGraphRequest<*>? = null
     private var currentAlbumId: String? = null
-
 
     companion object : SingletonHolder<FacebookCallFactory, AppCompatActivity>(::FacebookCallFactory) {
         val JSON_NAME_DATA = "data"
@@ -50,38 +48,38 @@ private constructor(private var activity: AppCompatActivity) {
     }
 
     fun executeRequest(request: BaseGraphRequest<*>) {
-        // If we don't have an access token - make a log-in request.
-        val accessToken = AccessToken.getCurrentAccessToken()
-        val loginRequest = FacebookLoginRequest.getInstance(activity)
-        if (loginRequest.startLogin(request, accessToken, pendingRequest, activity)) return
-
-        //todo - maybe create an AccessTokenVerification class for managing all this part
-        //Check if the access token has expired
-        if (accessToken != null) {
-            if (accessToken.isExpired) {
-                Log.i(TAG, "Access token has expired - refreshing")
-                pendingRequest = request
-                AccessToken.refreshCurrentAccessTokenAsync()
-                return
-            }
-        }
-        // Valid acces toke - > Execute request
-        request.onExecute()
+//        // If we don't have an access token - make a log-in request.
+//        val accessToken = AccessToken.getCurrentAccessToken()
+//        val loginRequest = FacebookLoginRequest.getInstance(activity)
+//        if (loginRequest.startLogin(request, accessToken, pendingRequest, activity)) return
+//
+//        //todo - maybe create an AccessTokenVerification class for managing all this part
+//        //Check if the access token has expired
+//        if (accessToken != null) {
+//            if (accessToken.isExpired) {
+//                Log.i(TAG, "Access token has expired - refreshing")
+//                pendingRequest = request
+//                AccessToken.refreshCurrentAccessTokenAsync()
+//                return
+//            }
+//        }
+//        // Valid acces toke - > Execute request
+//        request.onExecute()
     }
 
     fun getAlbums(albumsCallback: AlbumsCallback?) {
-        val albumsRequest = FacebookAlbumsRequest(pendingRequest, nextGraphRequest, albumsCallback, activity)
-        executeRequest(albumsRequest)
+//        val albumsRequest = FacebookAlbumsRequest(pendingRequest, nextGraphRequest, albumsCallback, activity)
+//        executeRequest(albumsRequest)
     }
 
     fun getPhotos(albumId: String, photosCallback: PhotosCallback?) {
-        currentAlbumId = albumId
-        val photosRequest = FacebookPhotosRequest(albumId,
-                pendingRequest,
-                nextGraphRequest,
-                photosCallback,
-                activity)
-        executeRequest(photosRequest)
+//        currentAlbumId = albumId
+//        val photosRequest = FacebookPhotosRequest(albumId,
+//                pendingRequest,
+//                nextGraphRequest,
+//                photosCallback,
+//                activity)
+//        executeRequest(photosRequest)
     }
 
     fun resetFactory() {
