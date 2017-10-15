@@ -4,17 +4,16 @@ package com.imagepicker.facebook
  * @author james on 10/11/17.
  */
 
-abstract class BaseGraphRequest<T : FacebookCallFactory.BaseCallback>
-internal constructor(private var mCallback: T?) {
+abstract class BaseGraphRequest : FacebookCallFactory.BaseCallback {
 
     internal abstract fun onExecute()
 
-    internal fun onError(exception: Exception) {
-        if (mCallback != null) mCallback!!.onError(exception)
+    override fun onError(exception: Exception) {
+        //todo send error broadcast
     }
 
-    internal fun onCancel() {
-        if (mCallback != null) mCallback!!.onCancel()
+    override fun onCancel() {
+        //todo send cancel broadcast
     }
 
 }

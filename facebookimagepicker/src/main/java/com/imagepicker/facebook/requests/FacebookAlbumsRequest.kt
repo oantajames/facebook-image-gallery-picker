@@ -13,16 +13,14 @@ import com.imagepicker.facebook.FacebookCallFactory
  * @author james on 10/11/17.
  */
 class FacebookAlbumsRequest constructor(
-        private val activity: AppCompatActivity,
         private val callback: FacebookAlbumsRequestCallback
-) : BaseGraphRequest<FacebookCallFactory.AlbumsCallback>(activity as FacebookCallFactory.AlbumsCallback) {
+) : BaseGraphRequest() {
 
     private val GRAPH_PATH_ME_ALBUMS = "me/albums"
     private val PARAMETER_NAME_FIELDS = "fields"
     private val PARAMETER_VALUE_FIELDS = "id,name,count,cover_photo"
 
     override fun onExecute() {
-
         val parameters = Bundle()
         parameters.putString(PARAMETER_NAME_FIELDS, PARAMETER_VALUE_FIELDS)
         GraphRequest(AccessToken.getCurrentAccessToken(),

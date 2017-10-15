@@ -19,14 +19,12 @@ import java.util.ArrayList
  */
 
 open class FacebookAlbumsRequestCallback constructor(
-        val albumsCallback: FacebookCallFactory.AlbumsCallback?,
-        val activity: AppCompatActivity,
         val callbackStatus: AlbumsCallbackStatus
 ) : GraphRequest.Callback {
 
     //used to tell the job that it is finished or to reschedule the job if an error ocurred
     interface AlbumsCallbackStatus {
-        fun onComplete()
+        fun onComplete(list: ArrayList<FacebookAlbum>, hasMorePages: Boolean)
         fun onError()
     }
 
@@ -42,7 +40,6 @@ open class FacebookAlbumsRequestCallback constructor(
 
         val responseJSONObject = graphResponse.jsonObject
         getResponseData(responseJSONObject, graphResponse)
-        callbackStatus.onComplete()
     }
 
     private fun checkForErrors(error: FacebookRequestError?, graphResponse: GraphResponse): Boolean {
@@ -51,18 +48,17 @@ open class FacebookAlbumsRequestCallback constructor(
             when (error.category) {
                 FacebookRequestError.Category.LOGIN_RECOVERABLE -> {
                     Log.e(TAG, "Attempting to resolve LOGIN_RECOVERABLE error")
-                    LoginManager.getInstance().resolveError(activity, graphResponse)
+                    //todo -> LoginManager.getInstance().resolveError(activity, graphResponse)
                     callbackStatus.onError()
                     return true
                 }
                 FacebookRequestError.Category.TRANSIENT -> {
-                    FacebookCallFactory.getInstance(activity).getAlbums(albumsCallback)
+                   //todo->  FacebookCallFactory.getInstance().getAlbums()
                     callbackStatus.onError()
                     return true
                 }
                 else -> {
-                    if (albumsCallback != null)
-                        albumsCallback.onError(error.exception)
+                    //todo:maybe send here the error to the broadcat sender
                     callbackStatus.onError()
                     return true
                 }
@@ -95,8 +91,7 @@ open class FacebookAlbumsRequestCallback constructor(
             }
             //check if there are more pages - see FB docs for the GRAPH API
             val request = graphResponse.getRequestForPagedResults(GraphResponse.PagingDirection.NEXT)
-            if (albumsCallback != null)
-                albumsCallback.onAlbumsSuccess(albumsList, request != null)
+            callbackStatus.onComplete(albumsList, request != null)
         } else {
             Log.e(TAG, "No JSON found in graph response")
         }

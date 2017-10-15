@@ -1,8 +1,12 @@
 package com.imagepicker.facebook.view.albums
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.support.design.widget.Snackbar
+import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
@@ -13,7 +17,8 @@ import android.widget.Button
 import com.facebook.FacebookSdk
 import com.imagepicker.facebook.facebookimagepicker.R
 import com.imagepicker.facebook.FacebookCallFactory
-import com.imagepicker.facebook.jobs.FacebookJobScheduler
+import com.imagepicker.facebook.jobs.AlbumsJob
+import com.imagepicker.facebook.jobs.utils.FacebookJobManager
 import com.imagepicker.facebook.model.FacebookAlbum
 import com.imagepicker.facebook.view.BaseRecyclerAdapter
 import com.imagepicker.facebook.view.photos.FacebookPhotosActivity
@@ -31,7 +36,7 @@ class FacebookAlbumsActivity : AppCompatActivity(),
     val FACEBOOK_ALBUM_ID = "FACEBOOK_ALBUM_ID"
     val FACEBOOK_ALBUM_TITLE = "FACEBOOK_ALBUM_TITLE"
 
-    lateinit var facebookJobScheduler: FacebookJobScheduler
+    lateinit var facebookJobManager: FacebookJobManager
     lateinit var recyclerView: RecyclerView
     lateinit var adapter: FacebookAlbumsAdapter
     lateinit var retryButton: Button
@@ -39,25 +44,54 @@ class FacebookAlbumsActivity : AppCompatActivity(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_facebook_album_gallery)
+        FacebookSdk.sdkInitialize(applicationContext)
+
+        registerReceiver()
+        FacebookJobManager.getInstance().init(this@FacebookAlbumsActivity)
         recyclerView = findViewById(R.id.facebook_recycler_view)
 
-        FacebookSdk.sdkInitialize(applicationContext)
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true);
         supportActionBar?.title = "Albums"
 
         setRetryButton()
 
-        facebookJobScheduler = FacebookJobScheduler.getInstance(this@FacebookAlbumsActivity)
+        facebookJobManager = FacebookJobManager.getInstance()
 
         initAdapter()
-        facebookJobScheduler.getAlbums()
+        facebookJobManager.getAlbums()
+    }
+
+    private val broadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val action = intent.action
+            if (action == AlbumsJob.SEND_ALBUM_LIST_BROADCAST) {
+                if (intent.extras != null) {
+                    val list: ArrayList<FacebookAlbum> = intent.extras.getParcelableArrayList(AlbumsJob.ALBUMS_LIST)
+                    bollean = false
+                    if (retryButton.visibility == View.VISIBLE)
+                        retryButton.visibility = View.GONE
+                    Log.d(TAG, list.toString())
+                    adapter.loadMoreItems = intent.extras.getBoolean(AlbumsJob.HAS_MORES_PAGES)
+                    adapter.addItems(list as MutableList <FacebookAlbum>)
+                }
+            } else {
+                Log.e(TAG, "Bundle has no extras!")
+            }
+        }
+    }
+
+
+    private fun registerReceiver() {
+        val intentFilter = IntentFilter()
+        intentFilter.addAction(AlbumsJob.SEND_ALBUM_LIST_BROADCAST)
+        LocalBroadcastManager.getInstance(applicationContext).registerReceiver(broadcastReceiver, intentFilter)
     }
 
     private fun setRetryButton() {
         retryButton = findViewById(R.id.retry_facebook_login)
         retryButton.setOnClickListener(View.OnClickListener {
-            facebookJobScheduler.getAlbums()
+            facebookJobManager.getAlbums()
         })
     }
 
@@ -86,12 +120,12 @@ class FacebookAlbumsActivity : AppCompatActivity(),
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
         super.onActivityResult(requestCode, resultCode, data)
-        facebookJobScheduler.onActivityResult(requestCode, resultCode, data, this@FacebookAlbumsActivity)
+        facebookJobManager.onActivityResult(requestCode, resultCode, data, this@FacebookAlbumsActivity)
     }
 
     override fun onLoadMore() {
         //todo -pagination is not working properly
-        // facebookJobScheduler.getAlbums(this)
+        // facebookJobManager.getAlbums(this)
     }
 
     override fun onError(exception: Exception) {
@@ -105,12 +139,7 @@ class FacebookAlbumsActivity : AppCompatActivity(),
     }
 
     override fun onAlbumsSuccess(albumsList: List<FacebookAlbum>, moreAlbums: Boolean) {
-        bollean = false
-        if (retryButton.visibility == View.VISIBLE)
-            retryButton.visibility = View.GONE
-        Log.d(TAG, albumsList.toString())
-        adapter.loadMoreItems = moreAlbums
-        adapter.addItems(albumsList as MutableList<FacebookAlbum>)
+
     }
 
     override fun onAlbumClicked(albumItem: FacebookAlbum) {

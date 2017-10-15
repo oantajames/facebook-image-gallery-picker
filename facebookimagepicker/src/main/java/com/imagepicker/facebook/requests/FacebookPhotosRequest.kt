@@ -15,9 +15,8 @@ import com.imagepicker.facebook.callbacks.FacebookPhotosRequestCallback
  */
 class FacebookPhotosRequest constructor(
         private val albumId: String,
-        private val activity: AppCompatActivity,
         private val callback: FacebookPhotosRequestCallback
-) : BaseGraphRequest<FacebookCallFactory.PhotosCallback>(activity as FacebookCallFactory.PhotosCallback) {
+) : BaseGraphRequest() {
 
     private val GRAPH_PATH_ME_PHOTOS = "/me/photos"
     private val PARAMETER_NAME_TYPE = "type"

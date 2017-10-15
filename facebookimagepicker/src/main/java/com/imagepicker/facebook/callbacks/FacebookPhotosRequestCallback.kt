@@ -1,22 +1,22 @@
 package com.imagepicker.facebook.callbacks
 
-import android.app.Activity
-import android.support.v7.app.AppCompatActivity
+import android.content.Intent
+import android.os.Bundle
+import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
 import com.facebook.FacebookRequestError
 import com.facebook.GraphRequest
 import com.facebook.GraphResponse
 import com.facebook.login.LoginManager
-import com.imagepicker.facebook.BaseGraphRequest
 import com.imagepicker.facebook.FacebookCallFactory
-import com.imagepicker.facebook.model.FacebookPhoto
-import com.imagepicker.facebook.requests.FacebookPhotosRequest
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.net.MalformedURLException
 import java.net.URL
 import java.util.ArrayList
+import com.imagepicker.facebook.model.FacebookAlbum
+import com.imagepicker.facebook.model.FacebookPhoto
 
 /**
  * @author james on 10/10/17.
@@ -24,13 +24,11 @@ import java.util.ArrayList
 
 class FacebookPhotosRequestCallback constructor(
         var albumId: String,
-        private val photosCallback: FacebookCallFactory.PhotosCallback?,
-        val activity: AppCompatActivity,
         val callbackStatus: PhotosCallbackStatus
 ) : GraphRequest.Callback {
 
     interface PhotosCallbackStatus {
-        fun onComplete()
+        fun onComplete(list: ArrayList<FacebookPhoto>, hasMorePages: Boolean)
         fun onError()
     }
 
@@ -75,10 +73,8 @@ class FacebookPhotosRequestCallback constructor(
                 }
 
             }
-            var nextGraphRequest = graphResponse.getRequestForPagedResults(GraphResponse.PagingDirection.NEXT)
-            if (photosCallback != null)
-                photosCallback.onPhotosSuccess(photoArrayList, nextGraphRequest != null)
-            callbackStatus.onComplete()
+            val nextGraphRequest = graphResponse.getRequestForPagedResults(GraphResponse.PagingDirection.NEXT)
+            callbackStatus.onComplete(photoArrayList, nextGraphRequest != null)
         } else {
             Log.e(TAG, "No JSON found in graph response")
         }
@@ -90,19 +86,19 @@ class FacebookPhotosRequestCallback constructor(
             when (error.category) {
                 FacebookRequestError.Category.LOGIN_RECOVERABLE -> {
                     Log.e(TAG, "LOGIN_RECOVERABLE ERROR")
-                    LoginManager.getInstance().resolveError(activity, graphResponse)
+//                    LoginManager.getInstance().resolveError(activity, graphResponse)
                     callbackStatus.onError()
                     return true
                 }
                 FacebookRequestError.Category.TRANSIENT -> {
                     //todo : is it required to retry this here ? move the logic to the FaceookJobScheduler and handle it there
-                    FacebookCallFactory.getInstance(activity).getPhotos(albumId, photosCallback)
+//                    FacebookCallFactory.getInstance(activity).getPhotos(albumId, photosCallback)
                     callbackStatus.onError()
                     return true
                 }
                 else -> {
-                    if (photosCallback != null)
-                        photosCallback.onError(error.exception)
+//                    if (photosCallback != null)
+//                        photosCallback.onError(error.exception)
                     callbackStatus.onError()
                     return true
                 }

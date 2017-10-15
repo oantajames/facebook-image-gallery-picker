@@ -1,5 +1,6 @@
-package com.imagepicker.facebook.jobs
+package com.imagepicker.facebook.jobs.utils
 
+import android.support.v7.app.AppCompatActivity
 import com.firebase.jobdispatcher.JobParameters
 import com.firebase.jobdispatcher.JobService
 
@@ -14,10 +15,6 @@ abstract class BaseJob : JobService() {
     protected abstract fun onJobStart(jobParameters: JobParameters?): Boolean
 
     override fun onStopJob(p0: JobParameters?): Boolean {
-        return onJobStart(p0)
-    }
-
-    override fun onStartJob(p0: JobParameters?): Boolean {
         //onStopJob() is called by the system if the job is cancelled before being finished.
         // This generally happens when your job conditions are no longer being met,
         // such as when the device has been unplugged or if WiFi is no longer available.
@@ -25,6 +22,10 @@ abstract class BaseJob : JobService() {
         // Then, return true if you’d like the system to reschedule the job,
         // or false if it doesn’t matter and the system will drop this job.
         return true
+    }
+
+    override fun onStartJob(p0: JobParameters?): Boolean {
+        return onJobStart(p0)
     }
 
 }

@@ -16,7 +16,7 @@ private constructor(private var activity: AppCompatActivity) {
     val TAG = "FacebookCallFactory"
 
     private var nextGraphRequest: GraphRequest? = null
-    var pendingRequest: BaseGraphRequest<*>? = null
+    var pendingRequest: BaseGraphRequest? = null
     private var currentAlbumId: String? = null
 
     companion object : SingletonHolder<FacebookCallFactory, AppCompatActivity>(::FacebookCallFactory) {
@@ -30,24 +30,24 @@ private constructor(private var activity: AppCompatActivity) {
 //        val JSON_NAME_ID = "id"
 //
 //        @SuppressLint("StaticFieldLeak")
-//        private var facebookJobScheduler: FacebookCallFactory? = null
+//        private var facebookJobManager: FacebookCallFactory? = null
 //
 //        fun getInstance(activity: AppCompatActivity): FacebookCallFactory {
-//            if (facebookJobScheduler == null) {
-//                facebookJobScheduler = FacebookCallFactory(activity)
+//            if (facebookJobManager == null) {
+//                facebookJobManager = FacebookCallFactory(activity)
 //            }
-//            if (facebookJobScheduler!!.activity != activity)
-//                facebookJobScheduler!!.activity = activity;
-//            return facebookJobScheduler!!
+//            if (facebookJobManager!!.activity != activity)
+//                facebookJobManager!!.activity = activity;
+//            return facebookJobManager!!
 //        }
 //    }
 
     internal fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent, activity: AppCompatActivity) {
         val accessToken = AccessToken.getCurrentAccessToken()
-        FacebookLoginRequest.getInstance(activity).onActivityResult(requestCode, resultCode, data)
+//        FacebookLoginRequest.getInstance(activity).onActivityResult(requestCode, resultCode, data)
     }
 
-    fun executeRequest(request: BaseGraphRequest<*>) {
+    fun executeRequest(request: BaseGraphRequest) {
 //        // If we don't have an access token - make a log-in request.
 //        val accessToken = AccessToken.getCurrentAccessToken()
 //        val loginRequest = FacebookLoginRequest.getInstance(activity)
@@ -91,6 +91,7 @@ private constructor(private var activity: AppCompatActivity) {
         fun onCancel()
     }
 
+    //I don't need this !
     interface PhotosCallback : BaseCallback {
         fun onPhotosSuccess(facebookPhotoList: List<FacebookPhoto>, morePhotos: Boolean)
     }
