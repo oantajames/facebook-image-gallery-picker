@@ -20,8 +20,6 @@ open class FacebookAlbumsRequestCallback constructor(
         val callbackStatus: AlbumsCallbackStatus
 ) : GraphRequest.Callback {
 
-    //todo - Execute all this on a background thread!
-
     val JSON_NAME_DATA = "data"
     val JSON_NAME_ID = "id"
 
@@ -60,7 +58,6 @@ open class FacebookAlbumsRequestCallback constructor(
                     return true
                 }
                 else -> {
-                    //todo:maybe send here the error to the broadcat sender
                     callbackStatus.onError()
                     return true
                 }
@@ -92,8 +89,12 @@ open class FacebookAlbumsRequestCallback constructor(
                 }
             }
             //check if there are more pages - see FB docs for the GRAPH API
-            val request = graphResponse.getRequestForPagedResults(GraphResponse.PagingDirection.NEXT)
-            callbackStatus.onComplete(albumsList, request != null)
+            var nextGraphRequest = graphResponse.getRequestForPagedResults(GraphResponse.PagingDirection.NEXT)
+            if (nextGraphRequest != null) {
+                //todo- check if access token has been removed!
+                FacebookJobManager.getInstance().nextPageGraphRequest = nextGraphRequest
+            }
+            callbackStatus.onComplete(albumsList, nextGraphRequest != null)
         } else {
             Log.e(TAG, "No JSON found in graph response")
         }

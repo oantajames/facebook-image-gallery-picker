@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import com.facebook.AccessToken
+import com.facebook.GraphRequest
 import com.firebase.jobdispatcher.*
 import com.imagepicker.facebook.jobs.AlbumsJob
 import com.imagepicker.facebook.jobs.LoginJob
@@ -44,6 +45,7 @@ class FacebookJobManager private constructor() {
     var currentAlbumId = "albumId"
     lateinit var activity: AppCompatActivity
     lateinit var dispatcher: FirebaseJobDispatcher
+    var nextPageGraphRequest: GraphRequest? = null
 
     fun init(newActivity: AppCompatActivity) {
         dispatcher = FirebaseJobDispatcher(GooglePlayDriver(newActivity))
@@ -72,6 +74,45 @@ class FacebookJobManager private constructor() {
             startVerifyAccessTokenJob(albumId)
         } else {
             Log.e(TAG, "You must call init first!")
+        }
+    }
+
+    // if nextGraphRequest is null, it means this is the first request!
+    fun startAlbumsJob(nextGraphRequest: GraphRequest?) {
+        if (wasInitCalled) {
+            nextPageGraphRequest = nextGraphRequest
+            val bundle = Bundle()
+            bundle.putBoolean(AlbumsJob.HAS_NEXT_PAGE, nextGraphRequest != null)
+            val albumsJob: Job? = dispatcher.newJobBuilder()
+                    .setService(AlbumsJob::class.java)
+                    .setTag(ALBUMS_JOB)
+                    .setTrigger(Trigger.executionWindow(0, 0))
+                    .setExtras(bundle)
+                    .setConstraints(
+                            Constraint.ON_ANY_NETWORK
+                    )
+                    .build()
+            dispatcher.mustSchedule(albumsJob)
+        }
+    }
+
+    // if nextGraphRequest is null, it means this is the first request!
+    fun startPhotosJob(nextGraphRequest: GraphRequest?) {
+        if (wasInitCalled) {
+            nextPageGraphRequest = nextGraphRequest
+            val bundle = Bundle()
+            bundle.putBoolean(PhotosJob.HAS_NEXT_PAGE, nextGraphRequest != null)
+            val albumsJob: Job? = dispatcher.newJobBuilder()
+                    .setService(PhotosJob::class.java)
+                    .setTag(ALBUMS_JOB)
+                    .setTrigger(Trigger.executionWindow(0, 0))
+                    .setExtras(bundle)
+                    .setExtras(putAlbumId(currentAlbumId))
+                    .setConstraints(
+                            Constraint.ON_ANY_NETWORK
+                    )
+                    .build()
+            dispatcher.mustSchedule(albumsJob)
         }
     }
 
@@ -109,32 +150,6 @@ class FacebookJobManager private constructor() {
                 )
                 .build()
         dispatcher.mustSchedule(loginJob)
-    }
-
-    internal fun startAlbumsJob() {
-        val albumsJob: Job? = dispatcher.newJobBuilder()
-                .setService(AlbumsJob::class.java)
-                .setTag(ALBUMS_JOB)
-                .setTrigger(Trigger.executionWindow(0, 0))
-                .setConstraints(
-                        Constraint.ON_ANY_NETWORK
-                )
-                .build()
-        dispatcher.mustSchedule(albumsJob)
-    }
-
-
-    internal fun startPhotosJob() {
-        val photosJob: Job? = dispatcher.newJobBuilder()
-                .setService(PhotosJob::class.java)
-                .setTag(PHOTOS_JOB)
-                .setExtras(putAlbumId(currentAlbumId))
-                .setTrigger(Trigger.executionWindow(0, 0))
-                .setConstraints(
-                        Constraint.ON_ANY_NETWORK
-                )
-                .build()
-        dispatcher.mustSchedule(photosJob)
     }
 
     internal fun getAlbumId(jobParameters: JobParameters?): String? {

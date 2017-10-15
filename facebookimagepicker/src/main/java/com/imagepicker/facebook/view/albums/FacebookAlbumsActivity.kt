@@ -95,8 +95,8 @@ class FacebookAlbumsActivity : AppCompatActivity(),
     }
 
     override fun onLoadMore() {
-        //todo -pagination is not working properly
-        // facebookJobManager.getAlbums(this)
+        FacebookJobManager.getInstance()
+                .startAlbumsJob(FacebookJobManager.getInstance().nextPageGraphRequest)
     }
 
     override fun onAlbumClicked(albumItem: FacebookAlbum) {
@@ -118,7 +118,7 @@ class FacebookAlbumsActivity : AppCompatActivity(),
                     if (intent.extras != null) {
                         val list: ArrayList<FacebookAlbum> = intent.extras.getParcelableArrayList(AlbumsJob.ALBUMS_LIST)
                         Log.d(TAG, list.toString())
-                        adapter.loadMoreItems = intent.extras.getBoolean(AlbumsJob.HAS_MORES_PAGES)
+                        adapter.loadMoreItems = intent.extras.getBoolean(AlbumsJob.HAS_NEXT_PAGE)
                         progressBar.visibility = View.INVISIBLE
                         adapter.addItems(list as MutableList <FacebookAlbum>)
                     }

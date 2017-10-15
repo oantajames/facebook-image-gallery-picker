@@ -31,12 +31,4 @@ abstract class FacebookLoginResultCallback : FacebookCallback<LoginResult> {
         onReqError(facebookException)
     }
 
-    //todo - do i need this anymore ?!!!!!!!
-    private fun newAccessToken() {
-//        if (pendingRequest != null) {
-//            val pendingRequest = pendingRequest
-//            this.pendingRequest = null
-//            pendingRequest?.onExecute()
-//        }
-    }
 }

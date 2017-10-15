@@ -14,24 +14,31 @@ class FacebookPhotosRequest constructor(
         private val callback: FacebookPhotosRequestCallback
 ) : BaseGraphRequest() {
 
-    private val GRAPH_PATH_ME_PHOTOS = "/me/photos"
     private val PARAMETER_NAME_TYPE = "type"
     private val PARAMETER_VALUE_TYPE = "uploaded"
     private val PARAMETER_NAME_FIELDS = "fields"
     private val PARAMETER_VALUE_FIELDS = "id,link,picture,images"
 
+    lateinit var parameters: Bundle
+    var nextGraphRequest: GraphRequest = createGraphRequest(setParameters())
+
     public override fun onExecute() {
-        val parameters = Bundle()
+        nextGraphRequest.executeAsync()
+    }
+
+    private fun setParameters(): Bundle {
+        parameters = Bundle()
         parameters.putString(PARAMETER_NAME_TYPE, PARAMETER_VALUE_TYPE)
         parameters.putString(PARAMETER_NAME_FIELDS, PARAMETER_VALUE_FIELDS)
+        return parameters
+    }
 
-        val request = GraphRequest(
+    private fun createGraphRequest(parameters: Bundle): GraphRequest {
+        return GraphRequest(
                 AccessToken.getCurrentAccessToken(),
                 "/" + albumId + "/photos",
                 parameters,
                 HttpMethod.GET,
                 callback)
-
-        request.executeAsync()
     }
 }

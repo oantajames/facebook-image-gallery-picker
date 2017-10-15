@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import android.support.design.widget.Snackbar
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.RecyclerView
@@ -16,7 +15,6 @@ import android.view.View
 import android.widget.ProgressBar
 import android.widget.Toast
 import com.imagepicker.facebook.facebookimagepicker.R
-import com.imagepicker.facebook.jobs.AlbumsJob
 import com.imagepicker.facebook.jobs.PhotosJob
 import com.imagepicker.facebook.jobs.utils.FacebookJobManager
 import com.imagepicker.facebook.model.FacebookPhoto
@@ -89,9 +87,9 @@ class FacebookPhotosActivity : AppCompatActivity(), BaseRecyclerAdapter.EndlessS
     }
 
     override fun onLoadMore() {
-        //todo- pagination is not working properly!
-//        if (albumId != null)
-//            facebookJobManager.getPhotos(albumId!!, this)
+        FacebookJobManager.getInstance()
+                .startPhotosJob(FacebookJobManager.getInstance().nextPageGraphRequest)
+
     }
 
     private val broadcastReceiver = object : BroadcastReceiver() {
@@ -101,7 +99,7 @@ class FacebookPhotosActivity : AppCompatActivity(), BaseRecyclerAdapter.EndlessS
                 if (intent.extras != null) {
                     val list: ArrayList<FacebookPhoto> = intent.extras.getParcelableArrayList(PhotosJob.PHOTOS_LIST)
                     Log.d(TAG, list.toString())
-                    adapter.loadMoreItems = intent.extras.getBoolean(AlbumsJob.HAS_MORES_PAGES)
+                    adapter.loadMoreItems = intent.extras.getBoolean(PhotosJob.HAS_NEXT_PAGE)
                     progressBar.visibility = View.INVISIBLE
                     adapter.addItems(list as MutableList<FacebookPhoto>)
                 }

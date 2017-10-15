@@ -1,9 +1,11 @@
 package com.imagepicker.facebook.callbacks
 
 import android.util.Log
+import com.facebook.AccessToken
 import com.facebook.FacebookRequestError
 import com.facebook.GraphRequest
 import com.facebook.GraphResponse
+import com.imagepicker.facebook.jobs.utils.FacebookJobManager
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -15,7 +17,7 @@ import com.imagepicker.facebook.model.FacebookPhoto
 /**
  * @author james on 10/10/17.
  */
-
+//todo: -> try to do this on a background thread
 class FacebookPhotosRequestCallback constructor(
         var albumId: String,
         val callbackStatus: PhotosCallbackStatus
@@ -67,9 +69,12 @@ class FacebookPhotosRequestCallback constructor(
                 } catch (mue: MalformedURLException) {
                     Log.e(TAG, "Invalid URL in JSON: " + responseJSONObject.toString(), mue)
                 }
-
             }
-            val nextGraphRequest = graphResponse.getRequestForPagedResults(GraphResponse.PagingDirection.NEXT)
+            var nextGraphRequest = graphResponse.getRequestForPagedResults(GraphResponse.PagingDirection.NEXT)
+            if (nextGraphRequest != null) {
+                //todo- check if access token has been removed!
+                FacebookJobManager.getInstance().nextPageGraphRequest = nextGraphRequest
+            }
             callbackStatus.onComplete(photoArrayList, nextGraphRequest != null)
         } else {
             Log.e(TAG, "No JSON found in graph response")

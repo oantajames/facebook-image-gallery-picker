@@ -17,24 +17,17 @@ class PhotosJob : BaseJob() {
 
     companion object {
         val PHOTOS_LIST = "PHOTOS_LIST"
-        val HAS_MORES_PAGES = "HAS_MORE_PAGES"
         val BROADCAST_PHOTOS_SUCCESS = "BROADCAST_PHOTOS_SUCCESS"
         val BROADCAST_PHOTOS_ERROR = "BROADCAST_PHOTOS_ERROR"
+        val HAS_NEXT_PAGE = "HAS_NEXT_PAGE"
     }
 
     override fun onJobStart(jobParameters: JobParameters?): Boolean {
-        //TODO - how to make SURE that the acitivity has implemented the specific callback when we upcast it to the callback ?
-        // Currently the activity can be either AlbumsActivity or PhotosActivity
         val photogetsCallback = FacebookPhotosRequestCallback(
                 FacebookJobManager.getInstance().getAlbumId(jobParameters)!!,
                 object : FacebookPhotosRequestCallback.PhotosCallbackStatus {
                     override fun onComplete(list: ArrayList<FacebookPhoto>, hasMorePages: Boolean) {
-                        val bundle = Bundle()
-                        bundle.putParcelableArrayList(PHOTOS_LIST, list)
-                        val intent = Intent(BROADCAST_PHOTOS_SUCCESS)
-                        intent.putExtras(bundle)
-                        intent.putExtra(HAS_MORES_PAGES, hasMorePages)
-                        LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
+                        sendSuccessBroadcast(list, hasMorePages)
                         jobFinished(jobParameters!!, false)
                     }
 
@@ -44,9 +37,25 @@ class PhotosJob : BaseJob() {
                         jobFinished(jobParameters!!, false)
                     }
                 })
+
         val photosRequest = FacebookPhotosRequest(FacebookJobManager.getInstance().getAlbumId(jobParameters)!!, photogetsCallback)
+        //check if there is a next page request ready to use
+        if (jobParameters != null) {
+            if (jobParameters.extras != null && jobParameters.extras!!.getBoolean(PhotosJob.HAS_NEXT_PAGE)) {
+                photosRequest.nextGraphRequest = FacebookJobManager.getInstance().nextPageGraphRequest!!
+            }
+        }
         photosRequest.onExecute()
         return true
+    }
+
+    private fun sendSuccessBroadcast(list: ArrayList<FacebookPhoto>, hasMorePages: Boolean) {
+        val bundle = Bundle()
+        bundle.putParcelableArrayList(PHOTOS_LIST, list)
+        val intent = Intent(BROADCAST_PHOTOS_SUCCESS)
+        intent.putExtras(bundle)
+        intent.putExtra(HAS_NEXT_PAGE, hasMorePages)
+        LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
     }
 
     private fun sendErrorBroadcast() {

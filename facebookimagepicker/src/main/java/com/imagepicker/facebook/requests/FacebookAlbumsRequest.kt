@@ -17,13 +17,25 @@ class FacebookAlbumsRequest constructor(
     private val PARAMETER_NAME_FIELDS = "fields"
     private val PARAMETER_VALUE_FIELDS = "id,name,count,cover_photo"
 
+    lateinit var parameters: Bundle
+    var nextGraphRequest: GraphRequest = createGraphRequest(setParameters())
+
     override fun onExecute() {
-        val parameters = Bundle()
+        nextGraphRequest.executeAsync()
+    }
+
+    private fun setParameters(): Bundle {
+        parameters = Bundle()
         parameters.putString(PARAMETER_NAME_FIELDS, PARAMETER_VALUE_FIELDS)
-        GraphRequest(AccessToken.getCurrentAccessToken(),
+        return parameters
+    }
+
+    private fun createGraphRequest(parameters: Bundle): GraphRequest {
+        return GraphRequest(AccessToken.getCurrentAccessToken(),
                 GRAPH_PATH_ME_ALBUMS,
                 parameters,
                 HttpMethod.GET,
-                callback).executeAsync()
+                callback)
     }
+
 }

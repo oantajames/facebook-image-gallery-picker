@@ -2,6 +2,7 @@ package com.imagepicker.facebook.jobs
 
 import android.content.Intent
 import android.support.v4.content.LocalBroadcastManager
+import android.widget.Toast
 import com.facebook.FacebookException
 import com.facebook.login.LoginResult
 import com.firebase.jobdispatcher.JobParameters
@@ -23,9 +24,14 @@ class LoginJob : BaseJob() {
         val loginRequest = FacebookLoginRequest.getInstance()
         loginRequest.startLogin(object : FacebookLoginResultCallback() {
             override fun onReqSuccess(loginResult: LoginResult) {
+                if (loginResult.recentlyDeniedPermissions.contains("user_photos")) {
+                    Toast.makeText(baseContext, "We need all the permissions!", Toast.LENGTH_SHORT).show()
+                    sendErrorBroadcast()
+                    return
+                }
                 when (FacebookJobManager.getInstance().currentJob) {
-                    FacebookJobManager.getInstance().ALBUMS_JOB -> FacebookJobManager.getInstance().startAlbumsJob()
-                    FacebookJobManager.getInstance().PHOTOS_JOB -> FacebookJobManager.getInstance().startPhotosJob()
+                    FacebookJobManager.getInstance().ALBUMS_JOB -> FacebookJobManager.getInstance().startAlbumsJob(null)
+                    FacebookJobManager.getInstance().PHOTOS_JOB -> FacebookJobManager.getInstance().startPhotosJob(null)
                 }
                 jobFinished(jobParameters!!, false)
             }
