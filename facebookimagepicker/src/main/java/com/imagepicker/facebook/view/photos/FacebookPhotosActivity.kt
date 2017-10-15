@@ -71,7 +71,7 @@ class FacebookPhotosActivity : AppCompatActivity(), FacebookCallFactory.PhotosCa
     override fun onLoadMore() {
         //todo- pagination is not working properly!
 //        if (albumId != null)
-//            facebookCallFactory.getPhotos(albumId!!, this)
+//            facebookJobScheduler.getPhotos(albumId!!, this)
     }
 
     override fun onError(exception: Exception) {

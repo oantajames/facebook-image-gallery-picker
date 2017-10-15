@@ -30,15 +30,15 @@ private constructor(private var activity: AppCompatActivity) {
 //        val JSON_NAME_ID = "id"
 //
 //        @SuppressLint("StaticFieldLeak")
-//        private var facebookCallFactory: FacebookCallFactory? = null
+//        private var facebookJobScheduler: FacebookCallFactory? = null
 //
 //        fun getInstance(activity: AppCompatActivity): FacebookCallFactory {
-//            if (facebookCallFactory == null) {
-//                facebookCallFactory = FacebookCallFactory(activity)
+//            if (facebookJobScheduler == null) {
+//                facebookJobScheduler = FacebookCallFactory(activity)
 //            }
-//            if (facebookCallFactory!!.activity != activity)
-//                facebookCallFactory!!.activity = activity;
-//            return facebookCallFactory!!
+//            if (facebookJobScheduler!!.activity != activity)
+//                facebookJobScheduler!!.activity = activity;
+//            return facebookJobScheduler!!
 //        }
 //    }
 

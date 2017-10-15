@@ -1,5 +1,6 @@
 package com.imagepicker.facebook.jobs
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import com.facebook.AccessToken
@@ -36,6 +37,12 @@ private constructor(var activity: AppCompatActivity) {
     var currentAlbumId = "albumId"
 
     var dispatcher = FirebaseJobDispatcher(GooglePlayDriver(activity))
+
+
+    internal fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent, activity: AppCompatActivity) {
+        val accessToken = AccessToken.getCurrentAccessToken()
+        FacebookLoginRequest.getInstance(activity).onActivityResult(requestCode, resultCode, data)
+    }
 
     fun getAlbums() {
         currentJob = ALBUMS_JOB

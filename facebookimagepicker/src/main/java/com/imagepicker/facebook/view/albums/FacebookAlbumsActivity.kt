@@ -13,6 +13,7 @@ import android.widget.Button
 import com.facebook.FacebookSdk
 import com.imagepicker.facebook.facebookimagepicker.R
 import com.imagepicker.facebook.FacebookCallFactory
+import com.imagepicker.facebook.jobs.FacebookJobScheduler
 import com.imagepicker.facebook.model.FacebookAlbum
 import com.imagepicker.facebook.view.BaseRecyclerAdapter
 import com.imagepicker.facebook.view.photos.FacebookPhotosActivity
@@ -30,7 +31,7 @@ class FacebookAlbumsActivity : AppCompatActivity(),
     val FACEBOOK_ALBUM_ID = "FACEBOOK_ALBUM_ID"
     val FACEBOOK_ALBUM_TITLE = "FACEBOOK_ALBUM_TITLE"
 
-    lateinit var facebookCallFactory: FacebookCallFactory
+    lateinit var facebookJobScheduler: FacebookJobScheduler
     lateinit var recyclerView: RecyclerView
     lateinit var adapter: FacebookAlbumsAdapter
     lateinit var retryButton: Button
@@ -47,16 +48,16 @@ class FacebookAlbumsActivity : AppCompatActivity(),
 
         setRetryButton()
 
-        facebookCallFactory = FacebookCallFactory.getInstance(this@FacebookAlbumsActivity)
+        facebookJobScheduler = FacebookJobScheduler.getInstance(this@FacebookAlbumsActivity)
 
         initAdapter()
-        facebookCallFactory.getAlbums(this)
+        facebookJobScheduler.getAlbums()
     }
 
     private fun setRetryButton() {
         retryButton = findViewById(R.id.retry_facebook_login)
         retryButton.setOnClickListener(View.OnClickListener {
-            facebookCallFactory.getAlbums(this)
+            facebookJobScheduler.getAlbums()
         })
     }
 
@@ -85,12 +86,12 @@ class FacebookAlbumsActivity : AppCompatActivity(),
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
         super.onActivityResult(requestCode, resultCode, data)
-        facebookCallFactory.onActivityResult(requestCode, resultCode, data, this@FacebookAlbumsActivity)
+        facebookJobScheduler.onActivityResult(requestCode, resultCode, data, this@FacebookAlbumsActivity)
     }
 
     override fun onLoadMore() {
         //todo -pagination is not working properly
-        // facebookCallFactory.getAlbums(this)
+        // facebookJobScheduler.getAlbums(this)
     }
 
     override fun onError(exception: Exception) {
