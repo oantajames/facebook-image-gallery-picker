@@ -1,13 +1,11 @@
 package com.imagepicker.facebook.callbacks
 
-import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import com.facebook.AccessToken
 import com.facebook.FacebookRequestError
 import com.facebook.GraphRequest
 import com.facebook.GraphResponse
-import com.facebook.login.LoginManager
-import com.imagepicker.facebook.FacebookCallFactory
+import com.imagepicker.facebook.jobs.utils.FacebookJobManager
 import com.imagepicker.facebook.model.FacebookAlbum
 import org.json.JSONException
 import org.json.JSONObject
@@ -22,7 +20,11 @@ open class FacebookAlbumsRequestCallback constructor(
         val callbackStatus: AlbumsCallbackStatus
 ) : GraphRequest.Callback {
 
-    //used to tell the job that it is finished or to reschedule the job if an error ocurred
+    //todo - Execute all this on a background thread!
+
+    val JSON_NAME_DATA = "data"
+    val JSON_NAME_ID = "id"
+
     interface AlbumsCallbackStatus {
         fun onComplete(list: ArrayList<FacebookAlbum>, hasMorePages: Boolean)
         fun onError()
@@ -53,7 +55,7 @@ open class FacebookAlbumsRequestCallback constructor(
                     return true
                 }
                 FacebookRequestError.Category.TRANSIENT -> {
-                   //todo->  FacebookCallFactory.getInstance().getAlbums()
+                    FacebookJobManager.getInstance().getAlbums()
                     callbackStatus.onError()
                     return true
                 }
@@ -70,13 +72,13 @@ open class FacebookAlbumsRequestCallback constructor(
     private fun getResponseData(responseJSONObject: JSONObject?, graphResponse: GraphResponse) {
         if (responseJSONObject != null) {
             Log.d(TAG, "Response object: " + responseJSONObject.toString())
-            val dataJSONArray = responseJSONObject.optJSONArray(FacebookCallFactory.JSON_NAME_DATA)
+            val dataJSONArray = responseJSONObject.optJSONArray(JSON_NAME_DATA)
             val albumsList = ArrayList<FacebookAlbum>(dataJSONArray.length())
             for (albumIndex in 0 until dataJSONArray.length()) {
                 try {
                     val albumJsonObject = dataJSONArray.getJSONObject(albumIndex)
 
-                    val id = albumJsonObject.getString(FacebookCallFactory.JSON_NAME_ID)
+                    val id = albumJsonObject.getString(JSON_NAME_ID)
                     val name = albumJsonObject.getString(JSON_NAME_ALBUM_NAME)
                     val photosCount = albumJsonObject.getString(JSON_NAME_ALBUM_PHOTOS_COUNT)
                     //todo: improve this part

@@ -1,21 +1,15 @@
 package com.imagepicker.facebook.callbacks
 
-import android.content.Intent
-import android.os.Bundle
-import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
 import com.facebook.FacebookRequestError
 import com.facebook.GraphRequest
 import com.facebook.GraphResponse
-import com.facebook.login.LoginManager
-import com.imagepicker.facebook.FacebookCallFactory
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.net.MalformedURLException
 import java.net.URL
 import java.util.ArrayList
-import com.imagepicker.facebook.model.FacebookAlbum
 import com.imagepicker.facebook.model.FacebookPhoto
 
 /**
@@ -34,6 +28,8 @@ class FacebookPhotosRequestCallback constructor(
 
     val TAG = FacebookPhotosRequestCallback::class.java.toString()
 
+    val JSON_NAME_DATA = "data"
+    val JSON_NAME_ID = "id"
     val JSON_NAME_PICTURE = "picture"
     val JSON_NAME_IMAGES = "images"
     val JSON_NAME_WIDTH = "width"
@@ -52,18 +48,18 @@ class FacebookPhotosRequestCallback constructor(
     private fun getResponseData(responseJSONObject: JSONObject?, graphResponse: GraphResponse) {
         if (responseJSONObject != null) {
             Log.d(TAG, "Response object: " + responseJSONObject.toString())
-            val dataJSONArray = responseJSONObject.optJSONArray(FacebookCallFactory.JSON_NAME_DATA)
+            val dataJSONArray = responseJSONObject.optJSONArray(JSON_NAME_DATA)
             val photoArrayList = ArrayList<FacebookPhoto>(dataJSONArray.length())
             for (photoIndex in 0 until dataJSONArray.length()) {
                 try {
                     val photoJSONObject = dataJSONArray.getJSONObject(photoIndex)
 
-                    val id = photoJSONObject.getString(FacebookCallFactory.JSON_NAME_ID)
+                    val id = photoJSONObject.getString(JSON_NAME_ID)
                     val picture = photoJSONObject.getString(JSON_NAME_PICTURE)
                     val imageJSONArray = photoJSONObject.getJSONArray(JSON_NAME_IMAGES)
 
                     val largestImageSource = getLargestImageSource(imageJSONArray)
-                    val photo = FacebookPhoto(URL(picture), URL(largestImageSource), id)
+                    val photo = FacebookPhoto(URL(largestImageSource), URL(picture), id)
 
                     photoArrayList.add(photo)
                 } catch (je: JSONException) {
@@ -86,19 +82,15 @@ class FacebookPhotosRequestCallback constructor(
             when (error.category) {
                 FacebookRequestError.Category.LOGIN_RECOVERABLE -> {
                     Log.e(TAG, "LOGIN_RECOVERABLE ERROR")
-//                    LoginManager.getInstance().resolveError(activity, graphResponse)
                     callbackStatus.onError()
                     return true
                 }
                 FacebookRequestError.Category.TRANSIENT -> {
-                    //todo : is it required to retry this here ? move the logic to the FaceookJobScheduler and handle it there
 //                    FacebookCallFactory.getInstance(activity).getPhotos(albumId, photosCallback)
                     callbackStatus.onError()
                     return true
                 }
                 else -> {
-//                    if (photosCallback != null)
-//                        photosCallback.onError(error.exception)
                     callbackStatus.onError()
                     return true
                 }
@@ -109,7 +101,6 @@ class FacebookPhotosRequestCallback constructor(
 
     private fun getLargestImageSource(imageJSONArray: JSONArray?): String? {
         if (imageJSONArray == null) return null
-
         val imageCount = imageJSONArray.length()
         var largestImageWidth = 0
         var largestImageSource: String? = null

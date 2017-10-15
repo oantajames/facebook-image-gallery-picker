@@ -5,13 +5,16 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.StaggeredGridLayoutManager
 import android.util.Log
 import android.view.MenuItem
-import com.imagepicker.facebook.FacebookCallFactory
+import android.view.View
+import android.widget.ProgressBar
+import android.widget.Toast
 import com.imagepicker.facebook.facebookimagepicker.R
 import com.imagepicker.facebook.jobs.AlbumsJob
 import com.imagepicker.facebook.jobs.PhotosJob
@@ -31,6 +34,8 @@ class FacebookPhotosActivity : AppCompatActivity(), BaseRecyclerAdapter.EndlessS
     lateinit var facebookJobManager: FacebookJobManager
     lateinit var recyclerView: RecyclerView
     lateinit var adapter: FacebookPhotosAdapter
+    lateinit var progressBar: ProgressBar
+
     var albumId: String? = null
     var albumTitle: String? = null
 
@@ -48,6 +53,7 @@ class FacebookPhotosActivity : AppCompatActivity(), BaseRecyclerAdapter.EndlessS
         supportActionBar?.setDisplayHomeAsUpEnabled(true);
         supportActionBar?.title = albumTitle
 
+        progressBar = findViewById(R.id.progress_bar)
         recyclerView = findViewById(R.id.facebook_recycler_view)
         facebookJobManager = FacebookJobManager.getInstance()
         adapter = FacebookPhotosAdapter()
@@ -63,7 +69,7 @@ class FacebookPhotosActivity : AppCompatActivity(), BaseRecyclerAdapter.EndlessS
 
     private fun registerReceiver() {
         val intentFilter = IntentFilter()
-        intentFilter.addAction(PhotosJob.SEND_PHOTOS_LIST_BROADCAST)
+        intentFilter.addAction(PhotosJob.BROADCAST_PHOTOS_SUCCESS)
         LocalBroadcastManager.getInstance(applicationContext).registerReceiver(broadcastReceiver, intentFilter)
     }
 
@@ -88,35 +94,25 @@ class FacebookPhotosActivity : AppCompatActivity(), BaseRecyclerAdapter.EndlessS
 //            facebookJobManager.getPhotos(albumId!!, this)
     }
 
-//    override fun onError(exception: Exception) {
-//        val snackbar = Snackbar.make(recyclerView, "Ups! Something wrong happened, please try again.", Snackbar.LENGTH_LONG)
-//        snackbar.show()
-//    }
-//
-//    override fun onCancel() {
-//        this.finish()
-//    }
-//
-//    override fun onPhotosSuccess(facebookPhotoList: List<FacebookPhoto>, morePhotos: Boolean) {
-//
-//    }
-
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            //todo - handle on error
-            //todo - add progress bar
             val action = intent.action
-            if (action == PhotosJob.SEND_PHOTOS_LIST_BROADCAST) {
+            if (action == PhotosJob.BROADCAST_PHOTOS_SUCCESS) {
                 if (intent.extras != null) {
                     val list: ArrayList<FacebookPhoto> = intent.extras.getParcelableArrayList(PhotosJob.PHOTOS_LIST)
                     Log.d(TAG, list.toString())
                     adapter.loadMoreItems = intent.extras.getBoolean(AlbumsJob.HAS_MORES_PAGES)
+                    progressBar.visibility = View.INVISIBLE
                     adapter.addItems(list as MutableList<FacebookPhoto>)
                 }
-            } else {
-                Log.e(TAG, "Bundle has no extras!")
+            } else if (action == PhotosJob.BROADCAST_PHOTOS_ERROR) {
+                destroyAndNotifyUser()
             }
         }
     }
 
+    private fun destroyAndNotifyUser() {
+        Toast.makeText(this@FacebookPhotosActivity, "Ups! Something wrong happened, please try again.", Toast.LENGTH_SHORT).show()
+        this@FacebookPhotosActivity.finish()
+    }
 }

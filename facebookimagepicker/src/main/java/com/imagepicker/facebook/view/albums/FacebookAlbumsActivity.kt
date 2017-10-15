@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import android.support.design.widget.Snackbar
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
@@ -13,11 +12,12 @@ import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
-import android.widget.Button
+import android.widget.ProgressBar
+import android.widget.Toast
 import com.facebook.FacebookSdk
 import com.imagepicker.facebook.facebookimagepicker.R
-import com.imagepicker.facebook.FacebookCallFactory
 import com.imagepicker.facebook.jobs.AlbumsJob
+import com.imagepicker.facebook.jobs.LoginJob
 import com.imagepicker.facebook.jobs.utils.FacebookJobManager
 import com.imagepicker.facebook.model.FacebookAlbum
 import com.imagepicker.facebook.view.BaseRecyclerAdapter
@@ -38,7 +38,7 @@ class FacebookAlbumsActivity : AppCompatActivity(),
     lateinit var facebookJobManager: FacebookJobManager
     lateinit var recyclerView: RecyclerView
     lateinit var adapter: FacebookAlbumsAdapter
-    lateinit var retryButton: Button
+    lateinit var progressBar: ProgressBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,12 +48,10 @@ class FacebookAlbumsActivity : AppCompatActivity(),
         registerReceiver()
         FacebookJobManager.getInstance().init(this@FacebookAlbumsActivity)
         recyclerView = findViewById(R.id.facebook_recycler_view)
-
+        progressBar = findViewById(R.id.progress_bar)
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true);
         supportActionBar?.title = "Albums"
-
-        setRetryButton()
 
         facebookJobManager = FacebookJobManager.getInstance()
 
@@ -63,15 +61,9 @@ class FacebookAlbumsActivity : AppCompatActivity(),
 
     private fun registerReceiver() {
         val intentFilter = IntentFilter()
-        intentFilter.addAction(AlbumsJob.SEND_ALBUM_LIST_BROADCAST)
+        intentFilter.addAction(AlbumsJob.BROADCAST_ALBUM_SUCCESS)
+        intentFilter.addAction(LoginJob.BROADCAST_FACEBOOK_LOGIN_ERROR)
         LocalBroadcastManager.getInstance(applicationContext).registerReceiver(broadcastReceiver, intentFilter)
-    }
-
-    private fun setRetryButton() {
-        retryButton = findViewById(R.id.retry_facebook_login)
-        retryButton.setOnClickListener(View.OnClickListener {
-            facebookJobManager.getAlbums()
-        })
     }
 
     private fun initAdapter() {
@@ -107,16 +99,6 @@ class FacebookAlbumsActivity : AppCompatActivity(),
         // facebookJobManager.getAlbums(this)
     }
 
-//    override fun onError(exception: Exception) {
-//        retryButton.visibility = View.VISIBLE
-//        val snackbar = Snackbar.make(recyclerView, "Ups! Something wrong happened, please try again.", Snackbar.LENGTH_LONG)
-//        snackbar.show()
-//    }
-//
-//    override fun onCancel() {
-//        retryButton.visibility = View.VISIBLE
-//    }
-
     override fun onAlbumClicked(albumItem: FacebookAlbum) {
         val intent = Intent(baseContext, FacebookPhotosActivity::class.java)
         intent.putExtra(FACEBOOK_ALBUM_ID, albumItem.albumId)
@@ -126,23 +108,30 @@ class FacebookAlbumsActivity : AppCompatActivity(),
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            //todo - handle on error
             //todo - add progress bar
             val action = intent.action
-            if (action == AlbumsJob.SEND_ALBUM_LIST_BROADCAST) {
-                if (intent.extras != null) {
-                    val list: ArrayList<FacebookAlbum> = intent.extras.getParcelableArrayList(AlbumsJob.ALBUMS_LIST)
-                    //todo - remove the button and destroy instead the activity and show a toast/snacbak to retry
-                    if (retryButton.visibility == View.VISIBLE)
-                        retryButton.visibility = View.GONE
-                    Log.d(TAG, list.toString())
-                    adapter.loadMoreItems = intent.extras.getBoolean(AlbumsJob.HAS_MORES_PAGES)
-                    adapter.addItems(list as MutableList <FacebookAlbum>)
+            when (action) {
+                LoginJob.BROADCAST_FACEBOOK_LOGIN_ERROR -> {
+                    destroyAndNotifyUser()
                 }
-            } else {
-                Log.e(TAG, "Bundle has no extras!")
+                AlbumsJob.BROADCAST_ALBUM_SUCCESS -> {
+                    if (intent.extras != null) {
+                        val list: ArrayList<FacebookAlbum> = intent.extras.getParcelableArrayList(AlbumsJob.ALBUMS_LIST)
+                        Log.d(TAG, list.toString())
+                        adapter.loadMoreItems = intent.extras.getBoolean(AlbumsJob.HAS_MORES_PAGES)
+                        progressBar.visibility = View.INVISIBLE
+                        adapter.addItems(list as MutableList <FacebookAlbum>)
+                    }
+                }
+                AlbumsJob.BROADCAST_ALBUM_ERROR -> {
+                    destroyAndNotifyUser()
+                }
             }
         }
     }
 
+    private fun destroyAndNotifyUser() {
+        Toast.makeText(this@FacebookAlbumsActivity, "Ups! Something wrong happened, please try again.", Toast.LENGTH_SHORT).show()
+        this@FacebookAlbumsActivity.finish()
+    }
 }

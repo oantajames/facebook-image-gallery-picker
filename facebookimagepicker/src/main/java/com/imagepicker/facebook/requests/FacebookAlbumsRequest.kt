@@ -1,13 +1,10 @@
 package com.imagepicker.facebook.requests
 
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import com.facebook.AccessToken
 import com.facebook.GraphRequest
 import com.facebook.HttpMethod
-import com.imagepicker.facebook.BaseGraphRequest
 import com.imagepicker.facebook.callbacks.FacebookAlbumsRequestCallback
-import com.imagepicker.facebook.FacebookCallFactory
 
 /**
  * @author james on 10/11/17.

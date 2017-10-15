@@ -13,14 +13,13 @@ import com.imagepicker.facebook.jobs.PhotosJob
 import com.imagepicker.facebook.jobs.VerifyAccessTokenJob
 import com.imagepicker.facebook.requests.FacebookLoginRequest
 
-
 /**
  * @author james on 10/13/17.
  */
 
 class FacebookJobManager private constructor() {
 
-//    companion object : SingletonHolder<FacebookJobManager, AppCompatActivity>(::FacebookJobManager)
+    val TAG = FacebookJobManager::class.java.simpleName
 
     companion object {
         @SuppressLint("StaticFieldLeak")
@@ -34,53 +33,54 @@ class FacebookJobManager private constructor() {
         }
     }
 
-    val TAG = FacebookJobManager::class.java.simpleName
-
     val ALBUMS_JOB = "ALBUMS_JOB"
     val PHOTOS_JOB = "PHOTOS_JOB"
     val LOGIN_JOB = "LOGIN_JOB"
+    val VERIFY_ACCESS_TOKEN_JOB = "VERIFY_ACCESS_TOKEN_JOB"
 
-    //set the current job when the getAlbums/getPhotos is called
+    var wasInitCalled = false
+
     var currentJob = "currentJob"
     var currentAlbumId = "albumId"
     lateinit var activity: AppCompatActivity
     lateinit var dispatcher: FirebaseJobDispatcher
-    var libraryInitiated: Boolean = false
-
 
     fun init(newActivity: AppCompatActivity) {
-        if (!libraryInitiated) {
-            dispatcher = FirebaseJobDispatcher(GooglePlayDriver(newActivity))
-            //we need to make sure the activity is set on this request!
-            FacebookLoginRequest.getInstance().activity = newActivity
-            libraryInitiated = true
-        } else {
-            Log.e(TAG, "Library already initialised");
-        }
+        dispatcher = FirebaseJobDispatcher(GooglePlayDriver(newActivity))
+        //we need to make sure the activity is set on this request!
+        FacebookLoginRequest.getInstance().activity = newActivity
+        wasInitCalled = true
     }
 
-    internal fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent, activity: AppCompatActivity) {
+    fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent, activity: AppCompatActivity) {
         val accessToken = AccessToken.getCurrentAccessToken()
         FacebookLoginRequest.getInstance().onActivityResult(requestCode, resultCode, data)
     }
 
     fun getAlbums() {
-        currentJob = ALBUMS_JOB
-        startVerifyAccessTokenJob()
+        if (wasInitCalled) {
+            currentJob = ALBUMS_JOB
+            startVerifyAccessTokenJob()
+        } else {
+            Log.e(TAG, "You must call init first!")
+        }
     }
 
     fun getPhotos(albumId: String) {
-        currentJob = PHOTOS_JOB
-        startVerifyAccessTokenJob(albumId)
+        if (wasInitCalled) {
+            currentJob = PHOTOS_JOB
+            startVerifyAccessTokenJob(albumId)
+        } else {
+            Log.e(TAG, "You must call init first!")
+        }
     }
 
     internal fun startVerifyAccessTokenJob() {
         val verifyTokenJob: Job? = dispatcher.newJobBuilder()
                 .setService(VerifyAccessTokenJob::class.java)
-                .setTag(LOGIN_JOB)
+                .setTag(VERIFY_ACCESS_TOKEN_JOB)
                 .setTrigger(Trigger.executionWindow(0, 0))
                 .build()
-        //todo : set job constraints regarding the network
         dispatcher.mustSchedule(verifyTokenJob)
     }
 
@@ -88,22 +88,26 @@ class FacebookJobManager private constructor() {
         currentAlbumId = albumId
         val verifyTokenJob: Job? = dispatcher.newJobBuilder()
                 .setService(VerifyAccessTokenJob::class.java)
-                .setTag("Verify_access_Token")
+                .setTag(VERIFY_ACCESS_TOKEN_JOB)
                 .setLifetime(Lifetime.FOREVER)
                 .setTrigger(Trigger.executionWindow(0, 0))
+                .setConstraints(
+                        Constraint.ON_ANY_NETWORK
+                )
                 .build()
-        //todo : set job constraints regarding the network
         dispatcher.mustSchedule(verifyTokenJob)
     }
 
-    fun startLoginJob() {
+    internal fun startLoginJob() {
         val loginJob: Job? = dispatcher.newJobBuilder()
                 .setService(LoginJob::class.java)
                 .setTag(LOGIN_JOB)
                 .setLifetime(Lifetime.FOREVER)
                 .setTrigger(Trigger.executionWindow(0, 0))
+                .setConstraints(
+                        Constraint.ON_ANY_NETWORK
+                )
                 .build()
-        //todo : set job constraints regarding the network
         dispatcher.mustSchedule(loginJob)
     }
 
@@ -112,8 +116,10 @@ class FacebookJobManager private constructor() {
                 .setService(AlbumsJob::class.java)
                 .setTag(ALBUMS_JOB)
                 .setTrigger(Trigger.executionWindow(0, 0))
+                .setConstraints(
+                        Constraint.ON_ANY_NETWORK
+                )
                 .build()
-        //todo : set job constraints regarding the network
         dispatcher.mustSchedule(albumsJob)
     }
 
@@ -124,12 +130,14 @@ class FacebookJobManager private constructor() {
                 .setTag(PHOTOS_JOB)
                 .setExtras(putAlbumId(currentAlbumId))
                 .setTrigger(Trigger.executionWindow(0, 0))
+                .setConstraints(
+                        Constraint.ON_ANY_NETWORK
+                )
                 .build()
-        //todo : set job constraints regarding the network
         dispatcher.mustSchedule(photosJob)
     }
 
-    fun getAlbumId(jobParameters: JobParameters?): String? {
+    internal fun getAlbumId(jobParameters: JobParameters?): String? {
         var extras: String? = null
         if (jobParameters != null) {
             extras = jobParameters.extras?.getString("ALBUM_ID")
@@ -137,7 +145,7 @@ class FacebookJobManager private constructor() {
         return extras
     }
 
-    private fun putAlbumId(albumId: String): Bundle {
+    internal fun putAlbumId(albumId: String): Bundle {
         val bundle = Bundle()
         bundle.putString("ALBUM_ID", albumId)
         return bundle

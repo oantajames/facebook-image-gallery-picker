@@ -1,13 +1,9 @@
 package com.imagepicker.facebook.requests
 
-import android.app.Activity
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import com.facebook.AccessToken
 import com.facebook.GraphRequest
 import com.facebook.HttpMethod
-import com.imagepicker.facebook.BaseGraphRequest
-import com.imagepicker.facebook.FacebookCallFactory
 import com.imagepicker.facebook.callbacks.FacebookPhotosRequestCallback
 
 /**
@@ -25,8 +21,6 @@ class FacebookPhotosRequest constructor(
     private val PARAMETER_VALUE_FIELDS = "id,link,picture,images"
 
     public override fun onExecute() {
-        // If we already have a next page request ready - execute it now. Otherwise make a new request
-
         val parameters = Bundle()
         parameters.putString(PARAMETER_NAME_TYPE, PARAMETER_VALUE_TYPE)
         parameters.putString(PARAMETER_NAME_FIELDS, PARAMETER_VALUE_FIELDS)

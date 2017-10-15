@@ -1,5 +1,7 @@
 package com.imagepicker.facebook.jobs
 
+import android.content.Intent
+import android.support.v4.content.LocalBroadcastManager
 import com.facebook.FacebookException
 import com.facebook.login.LoginResult
 import com.firebase.jobdispatcher.JobParameters
@@ -13,6 +15,10 @@ import com.imagepicker.facebook.requests.FacebookLoginRequest
  */
 class LoginJob : BaseJob() {
 
+    companion object {
+        val BROADCAST_FACEBOOK_LOGIN_ERROR = "BROADCAST_FACEBOOK_LOGIN_ERROR"
+    }
+
     override fun onJobStart(jobParameters: JobParameters?): Boolean {
         val loginRequest = FacebookLoginRequest.getInstance()
         loginRequest.startLogin(object : FacebookLoginResultCallback() {
@@ -25,12 +31,23 @@ class LoginJob : BaseJob() {
             }
 
             override fun onReqCancel() {
+                sendErrorBroadcast()
+                jobFinished(jobParameters!!, false)
             }
 
             override fun onReqError(facebookException: FacebookException) {
-                jobFinished(jobParameters!!, true)
+                sendErrorBroadcast()
+                //don't reschedule the job, because we destroy the activity
+                jobFinished(jobParameters!!, false)
             }
         })
         return true
     }
+
+    private fun sendErrorBroadcast() {
+        val intent = Intent(LoginJob.BROADCAST_FACEBOOK_LOGIN_ERROR)
+        LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
+    }
+
+
 }

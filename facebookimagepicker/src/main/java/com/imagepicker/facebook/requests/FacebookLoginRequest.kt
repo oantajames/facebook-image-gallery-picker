@@ -1,18 +1,12 @@
 package com.imagepicker.facebook.requests
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import com.facebook.AccessToken
 import com.facebook.CallbackManager
 import com.facebook.login.LoginManager
-import com.imagepicker.facebook.BaseGraphRequest
-import com.imagepicker.facebook.FacebookCallFactory
-import com.imagepicker.facebook.SingletonHolder
 import com.imagepicker.facebook.callbacks.FacebookLoginResultCallback
-import com.imagepicker.facebook.view.albums.FacebookAlbumsActivity
 import java.util.*
 
 /**

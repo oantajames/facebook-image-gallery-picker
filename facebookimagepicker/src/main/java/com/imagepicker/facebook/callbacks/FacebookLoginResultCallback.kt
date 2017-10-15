@@ -4,7 +4,6 @@ import android.util.Log
 import com.facebook.FacebookCallback
 import com.facebook.FacebookException
 import com.facebook.login.LoginResult
-import com.imagepicker.facebook.BaseGraphRequest
 
 /**
  * @author james on 10/11/17.
