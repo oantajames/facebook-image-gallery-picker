@@ -6,11 +6,13 @@
 
         <activity
             android:name="com.imagepicker.facebook.view.albums.FacebookAlbumsActivity"
+            android:launchMode="standard"
             android:screenOrientation="portrait"
             android:theme="@style/ImagePickerTheme"/>
 
         <activity
             android:name="com.imagepicker.facebook.view.photos.FacebookPhotosActivity"
+            android:launchMode="standard"
             android:screenOrientation="portrait"
             android:theme="@style/ImagePickerTheme"/>
 
@@ -23,7 +25,39 @@
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/facebook_app_id"/>
-    </application>
 
+        <service
+            android:name="com.imagepicker.facebook.jobs.AlbumsJob"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE"/>
+            </intent-filter>
+        </service>
+
+        <service
+            android:name="com.imagepicker.facebook.jobs.LoginJob"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE"/>
+            </intent-filter>
+        </service>
+
+        <service
+            android:name="com.imagepicker.facebook.jobs.PhotosJob"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE"/>
+            </intent-filter>
+        </service>
+
+        <service
+            android:name="com.imagepicker.facebook.jobs.VerifyAccessTokenJob"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE"/>
+            </intent-filter>
+        </service>
+
+    </application>
 
 </manifest>

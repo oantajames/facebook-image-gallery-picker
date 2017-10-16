@@ -4,40 +4,31 @@ import android.util.Log
 import com.facebook.FacebookCallback
 import com.facebook.FacebookException
 import com.facebook.login.LoginResult
-import com.imagepicker.facebook.BaseGraphRequest
-import com.imagepicker.facebook.FacebookCallFactory
 
 /**
  * @author james on 10/11/17.
  */
-class FacebookLoginResultCallback constructor(
-        var pendingRequest: BaseGraphRequest<*>?
-) : FacebookCallback<LoginResult> {
+abstract class FacebookLoginResultCallback : FacebookCallback<LoginResult> {
+
+    private val TAG = FacebookLoginResultCallback::class.java.simpleName
+
+    abstract fun onReqSuccess(loginResult: LoginResult)
+    abstract fun onReqCancel()
+    abstract fun onReqError(facebookException: FacebookException)
 
     override fun onSuccess(loginResult: LoginResult) {
-        Log.d(FacebookCallFactory.TAG, "onSuccess( loginResult = " + loginResult.toString() + " )")
-        newAccessToken()
+        Log.d(TAG, "onSuccess( loginResult = " + loginResult.toString() + " )")
+        onReqSuccess(loginResult)
     }
 
     override fun onCancel() {
-        Log.d(FacebookCallFactory.TAG, "onCancel()")
-        if (pendingRequest != null) {
-            pendingRequest!!.onCancel()
-        }
+        Log.d(TAG, "onCancel()")
+        onReqCancel()
     }
 
     override fun onError(facebookException: FacebookException) {
-        Log.d(FacebookCallFactory.TAG, "onError( facebookException = $facebookException)", facebookException)
-        if (pendingRequest != null) {
-            pendingRequest!!.onError(facebookException)
-        }
+        Log.d(TAG, "onError( facebookException = $facebookException)", facebookException)
+        onReqError(facebookException)
     }
 
-    private fun newAccessToken() {
-        if (pendingRequest != null) {
-            val pendingRequest = pendingRequest
-            this.pendingRequest = null
-            pendingRequest?.onExecute()
-        }
-    }
 }

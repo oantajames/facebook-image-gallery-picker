@@ -1,16 +1,12 @@
 package com.imagepicker.facebook.callbacks
 
-import android.app.Activity
 import android.util.Log
 import com.facebook.AccessToken
 import com.facebook.FacebookRequestError
 import com.facebook.GraphRequest
 import com.facebook.GraphResponse
-import com.facebook.login.LoginManager
-import com.imagepicker.facebook.BaseGraphRequest
-import com.imagepicker.facebook.FacebookCallFactory
+import com.imagepicker.facebook.jobs.utils.FacebookJobManager
 import com.imagepicker.facebook.model.FacebookAlbum
-import com.imagepicker.facebook.requests.FacebookAlbumsRequest
 import org.json.JSONException
 import org.json.JSONObject
 import java.net.MalformedURLException
@@ -20,19 +16,24 @@ import java.util.ArrayList
  * @author james on 10/11/17.
  */
 
-class FacebookAlbumsCallback
-constructor(
-        private var pendingRequest: BaseGraphRequest<*>?,
-        private var nextGraphRequest: GraphRequest?,
-        private val albumsCallback: FacebookCallFactory.AlbumsCallback?,
-        private val activity: Activity
+open class FacebookAlbumsRequestCallback constructor(
+        val callbackStatus: AlbumsCallbackStatus
 ) : GraphRequest.Callback {
 
+    val JSON_NAME_DATA = "data"
+    val JSON_NAME_ID = "id"
+
+    interface AlbumsCallbackStatus {
+        fun onComplete(list: ArrayList<FacebookAlbum>, hasMorePages: Boolean)
+        fun onError()
+    }
+
+    private val TAG = FacebookAlbumsRequestCallback::class.java.simpleName
     private val JSON_NAME_ALBUM_NAME = "name"
     private val JSON_NAME_ALBUM_PHOTOS_COUNT = "count"
 
     override fun onCompleted(graphResponse: GraphResponse) {
-        Log.d(FacebookCallFactory.TAG, "Graph response: " + graphResponse)
+        Log.d(TAG, "Graph response: " + graphResponse)
 
         val error = graphResponse.error
         if (checkForErrors(error, graphResponse)) return
@@ -43,21 +44,21 @@ constructor(
 
     private fun checkForErrors(error: FacebookRequestError?, graphResponse: GraphResponse): Boolean {
         if (error != null) {
-            Log.e(FacebookCallFactory.TAG, "Received Facebook server error: " + error.toString())
+            Log.e(TAG, "Received Facebook server error: " + error.toString())
             when (error.category) {
                 FacebookRequestError.Category.LOGIN_RECOVERABLE -> {
-                    Log.e(FacebookCallFactory.TAG, "Attempting to resolve LOGIN_RECOVERABLE error")
-                    pendingRequest = FacebookAlbumsRequest(pendingRequest, nextGraphRequest, albumsCallback, activity)
-                    LoginManager.getInstance().resolveError(activity, graphResponse)
+                    Log.e(TAG, "Attempting to resolve LOGIN_RECOVERABLE error")
+                    //todo -> LoginManager.getInstance().resolveError(activity, graphResponse)
+                    callbackStatus.onError()
                     return true
                 }
                 FacebookRequestError.Category.TRANSIENT -> {
-                    FacebookCallFactory.getInstance(activity).getAlbums(albumsCallback)
+                    FacebookJobManager.getInstance().getAlbums()
+                    callbackStatus.onError()
                     return true
                 }
                 else -> {
-                    if (albumsCallback != null)
-                        albumsCallback.onError(error.exception)
+                    callbackStatus.onError()
                     return true
                 }
             }
@@ -67,14 +68,14 @@ constructor(
 
     private fun getResponseData(responseJSONObject: JSONObject?, graphResponse: GraphResponse) {
         if (responseJSONObject != null) {
-            Log.d(FacebookCallFactory.TAG, "Response object: " + responseJSONObject.toString())
-            val dataJSONArray = responseJSONObject.optJSONArray(FacebookCallFactory.JSON_NAME_DATA)
+            Log.d(TAG, "Response object: " + responseJSONObject.toString())
+            val dataJSONArray = responseJSONObject.optJSONArray(JSON_NAME_DATA)
             val albumsList = ArrayList<FacebookAlbum>(dataJSONArray.length())
             for (albumIndex in 0 until dataJSONArray.length()) {
                 try {
                     val albumJsonObject = dataJSONArray.getJSONObject(albumIndex)
 
-                    val id = albumJsonObject.getString(FacebookCallFactory.JSON_NAME_ID)
+                    val id = albumJsonObject.getString(JSON_NAME_ID)
                     val name = albumJsonObject.getString(JSON_NAME_ALBUM_NAME)
                     val photosCount = albumJsonObject.getString(JSON_NAME_ALBUM_PHOTOS_COUNT)
                     //todo: improve this part
@@ -82,16 +83,20 @@ constructor(
                     val album = FacebookAlbum(id, coverPhotoUrl, photosCount, name)
                     albumsList.add(album)
                 } catch (je: JSONException) {
-                    Log.e(FacebookCallFactory.TAG, "Unable to extract photo from JSON: " + responseJSONObject.toString(), je)
+                    Log.e(TAG, "Unable to extract photo from JSON: " + responseJSONObject.toString(), je)
                 } catch (mue: MalformedURLException) {
-                    Log.e(FacebookCallFactory.TAG, "Invalid URL in JSON: " + responseJSONObject.toString(), mue)
+                    Log.e(TAG, "Invalid URL in JSON: " + responseJSONObject.toString(), mue)
                 }
             }
-            nextGraphRequest = graphResponse.getRequestForPagedResults(GraphResponse.PagingDirection.NEXT)
-            if (albumsCallback != null)
-                albumsCallback.onAlbumsSuccess(albumsList, nextGraphRequest != null)
+            //check if there are more pages - see FB docs for the GRAPH API
+            var nextGraphRequest = graphResponse.getRequestForPagedResults(GraphResponse.PagingDirection.NEXT)
+            if (nextGraphRequest != null) {
+                //todo- check if access token has been removed!
+                FacebookJobManager.getInstance().nextPageGraphRequest = nextGraphRequest
+            }
+            callbackStatus.onComplete(albumsList, nextGraphRequest != null)
         } else {
-            Log.e(FacebookCallFactory.TAG, "No JSON found in graph response")
+            Log.e(TAG, "No JSON found in graph response")
         }
     }
 }

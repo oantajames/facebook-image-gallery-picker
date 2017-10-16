@@ -1,15 +1,23 @@
 package com.imagepicker.facebook.view.photos
 
 import android.app.Activity
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
+import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.StaggeredGridLayoutManager
 import android.util.Log
 import android.view.MenuItem
-import com.imagepicker.facebook.FacebookCallFactory
+import android.view.View
+import android.widget.ProgressBar
+import android.widget.Toast
 import com.imagepicker.facebook.facebookimagepicker.R
+import com.imagepicker.facebook.jobs.PhotosJob
+import com.imagepicker.facebook.jobs.utils.FacebookJobManager
 import com.imagepicker.facebook.model.FacebookPhoto
 import com.imagepicker.facebook.view.BaseRecyclerAdapter
 import com.imagepicker.facebook.view.albums.FacebookAlbumsActivity
@@ -18,19 +26,27 @@ import com.imagepicker.facebook.view.albums.FacebookAlbumsActivity
  * @author james on 10/11/17.
  */
 
-class FacebookPhotosActivity : AppCompatActivity(), FacebookCallFactory.PhotosCallback, BaseRecyclerAdapter.EndlessScrollListener {
+class FacebookPhotosActivity : AppCompatActivity(), BaseRecyclerAdapter.EndlessScrollListener, FacebookPhotosAdapter.PhotosAction {
+
+    companion object {
+        val FACEBOOK_PHOTO_ITEM = "FACEBOOK_PHOTO_ITEM"
+    }
 
     val TAG: String = FacebookAlbumsActivity::class.java.simpleName
 
-    lateinit var facebookCallFactory: FacebookCallFactory
+    lateinit var facebookJobManager: FacebookJobManager
     lateinit var recyclerView: RecyclerView
     lateinit var adapter: FacebookPhotosAdapter
+    lateinit var progressBar: ProgressBar
+
     var albumId: String? = null
     var albumTitle: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_facebook_album_gallery)
+        registerReceiver()
+
         val extras = intent.extras
         if (extras != null) {
             albumId = extras.getString(FacebookAlbumsActivity().FACEBOOK_ALBUM_ID)
@@ -40,9 +56,10 @@ class FacebookPhotosActivity : AppCompatActivity(), FacebookCallFactory.PhotosCa
         supportActionBar?.setDisplayHomeAsUpEnabled(true);
         supportActionBar?.title = albumTitle
 
+        progressBar = findViewById(R.id.progress_bar)
         recyclerView = findViewById(R.id.facebook_recycler_view)
-        facebookCallFactory = FacebookCallFactory.getInstance(this@FacebookPhotosActivity)
-        adapter = FacebookPhotosAdapter()
+        facebookJobManager = FacebookJobManager.getInstance()
+        adapter = FacebookPhotosAdapter(this@FacebookPhotosActivity)
         adapter.setEndlessScrollListener(this@FacebookPhotosActivity)
 
 
@@ -50,12 +67,18 @@ class FacebookPhotosActivity : AppCompatActivity(), FacebookCallFactory.PhotosCa
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = adapter
         if (albumId != null)
-            facebookCallFactory.getPhotos(albumId!!, this@FacebookPhotosActivity)
+            facebookJobManager.getPhotos(albumId!!)
+    }
+
+    private fun registerReceiver() {
+        val intentFilter = IntentFilter()
+        intentFilter.addAction(PhotosJob.BROADCAST_PHOTOS_SUCCESS)
+        LocalBroadcastManager.getInstance(applicationContext).registerReceiver(broadcastReceiver, intentFilter)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
         super.onActivityResult(requestCode, resultCode, data)
-        facebookCallFactory.onActivityResult(requestCode, resultCode, data)
+        facebookJobManager.onActivityResult(requestCode, resultCode, data, this@FacebookPhotosActivity)
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
@@ -69,23 +92,40 @@ class FacebookPhotosActivity : AppCompatActivity(), FacebookCallFactory.PhotosCa
     }
 
     override fun onLoadMore() {
-        //todo- pagination is not working properly!
-//        if (albumId != null)
-//            facebookCallFactory.getPhotos(albumId!!, this)
+        FacebookJobManager.getInstance()
+                .startPhotosJob(FacebookJobManager.getInstance().nextPageGraphRequest)
+
     }
 
-    override fun onError(exception: Exception) {
-        //todo
+    private val broadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val action = intent.action
+            if (action == PhotosJob.BROADCAST_PHOTOS_SUCCESS) {
+                if (intent.extras != null) {
+                    val list: ArrayList<FacebookPhoto> = intent.extras.getParcelableArrayList(PhotosJob.PHOTOS_LIST)
+                    Log.d(TAG, list.toString())
+                    adapter.loadMoreItems = intent.extras.getBoolean(PhotosJob.HAS_NEXT_PAGE)
+                    progressBar.visibility = View.INVISIBLE
+                    adapter.addItems(list as MutableList<FacebookPhoto>)
+                }
+            } else if (action == PhotosJob.BROADCAST_PHOTOS_ERROR) {
+                destroyAndNotifyUser()
+            }
+        }
     }
 
-    override fun onCancel() {
-        //todo
+    private fun destroyAndNotifyUser() {
+        Toast.makeText(this@FacebookPhotosActivity, "Ups! Something wrong happened, please try again.", Toast.LENGTH_SHORT).show()
+        this@FacebookPhotosActivity.finish()
     }
 
-    override fun onPhotosSuccess(facebookPhotoList: List<FacebookPhoto>, morePhotos: Boolean) {
-        Log.d(TAG, facebookPhotoList.toString())
-        adapter.loadMoreItems = morePhotos
-        adapter.addItems(facebookPhotoList as MutableList<FacebookPhoto>)
+    override fun onPhotosClicked(facebookItem: FacebookPhoto) {
+        val intent = Intent()
+        val bundle = Bundle()
+        bundle.putParcelable(FACEBOOK_PHOTO_ITEM, facebookItem)
+        intent.putExtra(FACEBOOK_PHOTO_ITEM, bundle)
+        setResult(Activity.RESULT_OK, intent)
+        this@FacebookPhotosActivity.finish()
     }
 
 }

@@ -17,4 +17,12 @@
         tools:layout_editor_absoluteX="163dp"
         tools:layout_editor_absoluteY="231dp"/>
 
+    <ImageView
+        android:id="@+id/selected_image"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_centerInParent="true"
+        android:adjustViewBounds="true"
+        android:scaleType="centerCrop"/>
+
 </RelativeLayout>

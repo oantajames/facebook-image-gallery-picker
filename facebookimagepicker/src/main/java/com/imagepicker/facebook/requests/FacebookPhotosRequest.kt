@@ -1,12 +1,9 @@
 package com.imagepicker.facebook.requests
 
-import android.app.Activity
 import android.os.Bundle
 import com.facebook.AccessToken
 import com.facebook.GraphRequest
 import com.facebook.HttpMethod
-import com.imagepicker.facebook.BaseGraphRequest
-import com.imagepicker.facebook.FacebookCallFactory
 import com.imagepicker.facebook.callbacks.FacebookPhotosRequestCallback
 
 /**
@@ -14,44 +11,34 @@ import com.imagepicker.facebook.callbacks.FacebookPhotosRequestCallback
  */
 class FacebookPhotosRequest constructor(
         private val albumId: String,
-        private var pendingRequest: BaseGraphRequest<*>?,
-        private var nextGraphRequest: GraphRequest?,
-        private val photosCallback: FacebookCallFactory.PhotosCallback?,
-        private val activity: Activity
-) : BaseGraphRequest<FacebookCallFactory.PhotosCallback>(photosCallback) {
+        private val callback: FacebookPhotosRequestCallback
+) : BaseGraphRequest() {
 
-    private val GRAPH_PATH_ME_PHOTOS = "/me/photos"
     private val PARAMETER_NAME_TYPE = "type"
     private val PARAMETER_VALUE_TYPE = "uploaded"
     private val PARAMETER_NAME_FIELDS = "fields"
     private val PARAMETER_VALUE_FIELDS = "id,link,picture,images"
 
-    public override fun onExecute() {
-        // If we already have a next page request ready - execute it now. Otherwise make a new request
-        val photosGraphRequestCallback = FacebookPhotosRequestCallback(
-                albumId,
-                pendingRequest,
-                nextGraphRequest,
-                photosCallback,
-                activity)
+    lateinit var parameters: Bundle
+    var nextGraphRequest: GraphRequest = createGraphRequest(setParameters())
 
-        if (nextGraphRequest != null) {
-            nextGraphRequest!!.callback = photosGraphRequestCallback
-            nextGraphRequest!!.executeAsync()
-            nextGraphRequest = null
-            return
-        }
-        val parameters = Bundle()
+    public override fun onExecute() {
+        nextGraphRequest.executeAsync()
+    }
+
+    private fun setParameters(): Bundle {
+        parameters = Bundle()
         parameters.putString(PARAMETER_NAME_TYPE, PARAMETER_VALUE_TYPE)
         parameters.putString(PARAMETER_NAME_FIELDS, PARAMETER_VALUE_FIELDS)
+        return parameters
+    }
 
-        val request = GraphRequest(
+    private fun createGraphRequest(parameters: Bundle): GraphRequest {
+        return GraphRequest(
                 AccessToken.getCurrentAccessToken(),
                 "/" + albumId + "/photos",
                 parameters,
                 HttpMethod.GET,
-                photosGraphRequestCallback)
-
-        request.executeAsync()
+                callback)
     }
 }
