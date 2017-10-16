@@ -1,5 +1,6 @@
 package com.imagepicker.facebook.view.photos
 
+import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -25,7 +26,11 @@ import com.imagepicker.facebook.view.albums.FacebookAlbumsActivity
  * @author james on 10/11/17.
  */
 
-class FacebookPhotosActivity : AppCompatActivity(), BaseRecyclerAdapter.EndlessScrollListener {
+class FacebookPhotosActivity : AppCompatActivity(), BaseRecyclerAdapter.EndlessScrollListener, FacebookPhotosAdapter.PhotosAction {
+
+    companion object {
+        val FACEBOOK_PHOTO_ITEM = "FACEBOOK_PHOTO_ITEM"
+    }
 
     val TAG: String = FacebookAlbumsActivity::class.java.simpleName
 
@@ -54,7 +59,7 @@ class FacebookPhotosActivity : AppCompatActivity(), BaseRecyclerAdapter.EndlessS
         progressBar = findViewById(R.id.progress_bar)
         recyclerView = findViewById(R.id.facebook_recycler_view)
         facebookJobManager = FacebookJobManager.getInstance()
-        adapter = FacebookPhotosAdapter()
+        adapter = FacebookPhotosAdapter(this@FacebookPhotosActivity)
         adapter.setEndlessScrollListener(this@FacebookPhotosActivity)
 
 
@@ -113,4 +118,14 @@ class FacebookPhotosActivity : AppCompatActivity(), BaseRecyclerAdapter.EndlessS
         Toast.makeText(this@FacebookPhotosActivity, "Ups! Something wrong happened, please try again.", Toast.LENGTH_SHORT).show()
         this@FacebookPhotosActivity.finish()
     }
+
+    override fun onPhotosClicked(facebookItem: FacebookPhoto) {
+        val intent = Intent()
+        val bundle = Bundle()
+        bundle.putParcelable(FACEBOOK_PHOTO_ITEM, facebookItem)
+        intent.putExtra(FACEBOOK_PHOTO_ITEM, bundle)
+        setResult(Activity.RESULT_OK, intent)
+        this@FacebookPhotosActivity.finish()
+    }
+
 }

@@ -23,6 +23,9 @@ class FacebookJobManager private constructor() {
     val TAG = FacebookJobManager::class.java.simpleName
 
     companion object {
+        val BROADCAST_FACEBOOK_PHOTO_SELECTED = "BROADCAST_FACEBOOK_PHOTO_SELECTED"
+        val FACEBOOK_PHOTO = "FACEBOOK_PHOTO"
+
         @SuppressLint("StaticFieldLeak")
         private var INSTANCE: FacebookJobManager? = null
 

@@ -20,6 +20,7 @@ import com.imagepicker.facebook.jobs.AlbumsJob
 import com.imagepicker.facebook.jobs.LoginJob
 import com.imagepicker.facebook.jobs.utils.FacebookJobManager
 import com.imagepicker.facebook.model.FacebookAlbum
+import com.imagepicker.facebook.model.FacebookPhoto
 import com.imagepicker.facebook.view.BaseRecyclerAdapter
 import com.imagepicker.facebook.view.photos.FacebookPhotosActivity
 
@@ -34,6 +35,7 @@ class FacebookAlbumsActivity : AppCompatActivity(),
 
     val FACEBOOK_ALBUM_ID = "FACEBOOK_ALBUM_ID"
     val FACEBOOK_ALBUM_TITLE = "FACEBOOK_ALBUM_TITLE"
+    val FACEBOOK_PHOTO_RESULT = 2223
 
     lateinit var facebookJobManager: FacebookJobManager
     lateinit var recyclerView: RecyclerView
@@ -92,6 +94,11 @@ class FacebookAlbumsActivity : AppCompatActivity(),
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
         super.onActivityResult(requestCode, resultCode, data)
         facebookJobManager.onActivityResult(requestCode, resultCode, data, this@FacebookAlbumsActivity)
+        if (requestCode == FACEBOOK_PHOTO_RESULT) {
+            val bundle: Bundle = data.extras.getParcelable(FacebookPhotosActivity.FACEBOOK_PHOTO_ITEM)
+            val facebookItem: FacebookPhoto = bundle.getParcelable(FacebookPhotosActivity.FACEBOOK_PHOTO_ITEM)
+            sendSuccessBroadcast(facebookItem)
+        }
     }
 
     override fun onLoadMore() {
@@ -103,7 +110,7 @@ class FacebookAlbumsActivity : AppCompatActivity(),
         val intent = Intent(baseContext, FacebookPhotosActivity::class.java)
         intent.putExtra(FACEBOOK_ALBUM_ID, albumItem.albumId)
         intent.putExtra(FACEBOOK_ALBUM_TITLE, albumItem.albumTitle)
-        startActivity(intent)
+        startActivityForResult(intent, FACEBOOK_PHOTO_RESULT)
     }
 
     private val broadcastReceiver = object : BroadcastReceiver() {
@@ -128,6 +135,16 @@ class FacebookAlbumsActivity : AppCompatActivity(),
                 }
             }
         }
+    }
+
+    private fun sendSuccessBroadcast(facebookItem: FacebookPhoto) {
+        intent = Intent(FacebookJobManager.BROADCAST_FACEBOOK_PHOTO_SELECTED)
+        val bundle = Bundle()
+        bundle.putParcelable(FacebookJobManager.FACEBOOK_PHOTO, facebookItem)
+        intent.putExtra(FacebookJobManager.FACEBOOK_PHOTO, bundle)
+        LocalBroadcastManager.getInstance(this@FacebookAlbumsActivity).sendBroadcast(intent)
+        Log.d(TAG, "Broadcast with facebook photo sent! Photo data = " + facebookItem.toString())
+        this.finish()
     }
 
     private fun destroyAndNotifyUser() {

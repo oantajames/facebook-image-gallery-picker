@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import com.imagepicker.facebook.facebookimagepicker.R
+import com.imagepicker.facebook.model.FacebookAlbum
 import com.imagepicker.facebook.model.FacebookPhoto
 import com.imagepicker.facebook.view.BaseRecyclerAdapter
 import com.squareup.picasso.Picasso
@@ -14,7 +15,11 @@ import com.squareup.picasso.Picasso
 /**
  * @author james on 10/11/17.
  */
-class FacebookPhotosAdapter : BaseRecyclerAdapter<FacebookPhotosAdapter.ViewHolder, FacebookPhoto>() {
+class FacebookPhotosAdapter constructor(var photosAction: PhotosAction) : BaseRecyclerAdapter<FacebookPhotosAdapter.ViewHolder, FacebookPhoto>() {
+
+    interface PhotosAction {
+        fun onPhotosClicked(facebookItem: FacebookPhoto)
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): ViewHolder {
         val itemView = LayoutInflater.from(parent!!.context)
@@ -26,6 +31,9 @@ class FacebookPhotosAdapter : BaseRecyclerAdapter<FacebookPhotosAdapter.ViewHold
         if (itemData != null) {
             holder.setItem(itemData)
             holder.bindView()
+            holder.itemView.setOnClickListener {
+                photosAction.onPhotosClicked(itemData)
+            }
         }
     }
 
