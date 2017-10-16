@@ -18,6 +18,7 @@ class LoginJob : BaseJob() {
 
     companion object {
         val BROADCAST_FACEBOOK_LOGIN_ERROR = "BROADCAST_FACEBOOK_LOGIN_ERROR"
+        val BROADCAST_FACEBOOK_LOGIN_CANCEL = "BROADCAST_FACEBOOK_LOGIN_CANCEL"
     }
 
     override fun onJobStart(jobParameters: JobParameters?): Boolean {
@@ -37,7 +38,7 @@ class LoginJob : BaseJob() {
             }
 
             override fun onReqCancel() {
-                sendErrorBroadcast()
+                sendCancelBroadcast()
                 jobFinished(jobParameters!!, false)
             }
 
@@ -48,6 +49,12 @@ class LoginJob : BaseJob() {
             }
         })
         return true
+    }
+
+
+    private fun sendCancelBroadcast() {
+        val intent = Intent(LoginJob.BROADCAST_FACEBOOK_LOGIN_ERROR)
+        LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
     }
 
     private fun sendErrorBroadcast() {

@@ -115,7 +115,7 @@ class FacebookPhotosActivity : AppCompatActivity(), BaseRecyclerAdapter.EndlessS
     }
 
     private fun destroyAndNotifyUser() {
-        Toast.makeText(this@FacebookPhotosActivity, "Ups! Something wrong happened, please try again.", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this@FacebookPhotosActivity, "Something went wrong, please try again.", Toast.LENGTH_SHORT).show()
         this@FacebookPhotosActivity.finish()
     }
 

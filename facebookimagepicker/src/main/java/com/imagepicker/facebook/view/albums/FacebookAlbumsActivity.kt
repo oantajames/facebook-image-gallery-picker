@@ -64,7 +64,9 @@ class FacebookAlbumsActivity : AppCompatActivity(),
     private fun registerReceiver() {
         val intentFilter = IntentFilter()
         intentFilter.addAction(AlbumsJob.BROADCAST_ALBUM_SUCCESS)
+        intentFilter.addAction(AlbumsJob.BROADCAST_ALBUM_ERROR)
         intentFilter.addAction(LoginJob.BROADCAST_FACEBOOK_LOGIN_ERROR)
+        intentFilter.addAction(LoginJob.BROADCAST_FACEBOOK_LOGIN_CANCEL)
         LocalBroadcastManager.getInstance(applicationContext).registerReceiver(broadcastReceiver, intentFilter)
     }
 
@@ -123,6 +125,9 @@ class FacebookAlbumsActivity : AppCompatActivity(),
                 LoginJob.BROADCAST_FACEBOOK_LOGIN_ERROR -> {
                     destroyAndNotifyUser()
                 }
+                LoginJob.BROADCAST_FACEBOOK_LOGIN_CANCEL -> {
+                    this@FacebookAlbumsActivity.finish()
+                }
                 AlbumsJob.BROADCAST_ALBUM_SUCCESS -> {
                     if (intent.extras != null) {
                         val list: ArrayList<FacebookAlbum> = intent.extras.getParcelableArrayList(AlbumsJob.ALBUMS_LIST)
@@ -150,7 +155,7 @@ class FacebookAlbumsActivity : AppCompatActivity(),
     }
 
     private fun destroyAndNotifyUser() {
-        Toast.makeText(this@FacebookAlbumsActivity, "Ups! Something wrong happened, please try again.", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this@FacebookAlbumsActivity, "Something went wrong, please try again.", Toast.LENGTH_SHORT).show()
         this@FacebookAlbumsActivity.finish()
     }
 }
