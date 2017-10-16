@@ -91,13 +91,15 @@ class FacebookAlbumsActivity : AppCompatActivity(),
         super.onResume()
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        facebookJobManager.onActivityResult(requestCode, resultCode, data, this@FacebookAlbumsActivity)
-        if (requestCode == FACEBOOK_PHOTO_RESULT) {
-            val bundle: Bundle = data.extras.getParcelable(FacebookPhotosActivity.FACEBOOK_PHOTO_ITEM)
-            val facebookItem: FacebookPhoto = bundle.getParcelable(FacebookPhotosActivity.FACEBOOK_PHOTO_ITEM)
-            sendSuccessBroadcast(facebookItem)
+        if (data != null) {
+            facebookJobManager.onActivityResult(requestCode, resultCode, data, this@FacebookAlbumsActivity)
+            if (requestCode == FACEBOOK_PHOTO_RESULT) {
+                val bundle: Bundle = data.extras.getParcelable(FacebookPhotosActivity.FACEBOOK_PHOTO_ITEM)
+                val facebookItem: FacebookPhoto = bundle.getParcelable(FacebookPhotosActivity.FACEBOOK_PHOTO_ITEM)
+                sendSuccessBroadcast(facebookItem)
+            }
         }
     }
 
