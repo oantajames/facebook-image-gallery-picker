@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">facebookImagePicker</string>
-    <!--todo CHANGE THIS CHANGE THIS CHANGE THIS ID! -->
-    <string name="facebook_app_id"></string>
+    <string name="facebook_app_id">865135723535120</string>
+    <string name="fb_login_protocol_scheme">fb865135723535120</string>
 </resources>
