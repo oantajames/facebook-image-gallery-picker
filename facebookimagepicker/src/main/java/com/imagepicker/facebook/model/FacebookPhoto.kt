@@ -9,7 +9,6 @@ import java.net.URL
  */
 
 class FacebookPhoto : Parcelable {
-    //todo add the var s in the constructor!
     var photoUrl: URL
     private var thumbnailUrl: URL
     private var photoId: String

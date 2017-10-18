@@ -47,8 +47,6 @@ open class FacebookAlbumsRequestCallback constructor(
             Log.e(TAG, "Received Facebook server error: " + error.toString())
             when (error.category) {
                 FacebookRequestError.Category.LOGIN_RECOVERABLE -> {
-                    Log.e(TAG, "Attempting to resolve LOGIN_RECOVERABLE error")
-                    //todo -> LoginManager.getInstance().resolveError(activity, graphResponse)
                     callbackStatus.onError()
                     return true
                 }
@@ -91,7 +89,6 @@ open class FacebookAlbumsRequestCallback constructor(
             //check if there are more pages - see FB docs for the GRAPH API
             var nextGraphRequest = graphResponse.getRequestForPagedResults(GraphResponse.PagingDirection.NEXT)
             if (nextGraphRequest != null) {
-                //todo- check if access token has been removed!
                 FacebookJobManager.getInstance().nextPageGraphRequest = nextGraphRequest
             }
             callbackStatus.onComplete(albumsList, nextGraphRequest != null)

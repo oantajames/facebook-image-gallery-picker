@@ -1,5 +1,6 @@
 package com.imagepicker.facebook.view.albums
 
+import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -35,6 +36,7 @@ class FacebookAlbumsActivity : AppCompatActivity(),
 
     val FACEBOOK_ALBUM_ID = "FACEBOOK_ALBUM_ID"
     val FACEBOOK_ALBUM_TITLE = "FACEBOOK_ALBUM_TITLE"
+
     val FACEBOOK_PHOTO_RESULT = 2223
 
     lateinit var facebookJobManager: FacebookJobManager
@@ -100,8 +102,10 @@ class FacebookAlbumsActivity : AppCompatActivity(),
             if (requestCode == FACEBOOK_PHOTO_RESULT) {
                 val bundle: Bundle = data.extras.getParcelable(FacebookPhotosActivity.FACEBOOK_PHOTO_ITEM)
                 val facebookItem: FacebookPhoto = bundle.getParcelable(FacebookPhotosActivity.FACEBOOK_PHOTO_ITEM)
-                sendSuccessBroadcast(facebookItem)
+                setResult(facebookItem)
             }
+        } else {
+            Log.e(TAG, "OnActivityResult data is null!")
         }
     }
 
@@ -119,7 +123,6 @@ class FacebookAlbumsActivity : AppCompatActivity(),
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            //todo - add progress bar
             val action = intent.action
             when (action) {
                 LoginJob.BROADCAST_FACEBOOK_LOGIN_ERROR -> {
@@ -144,14 +147,14 @@ class FacebookAlbumsActivity : AppCompatActivity(),
         }
     }
 
-    private fun sendSuccessBroadcast(facebookItem: FacebookPhoto) {
-        intent = Intent(FacebookJobManager.BROADCAST_FACEBOOK_PHOTO_SELECTED)
+    private fun setResult(facebookPhoto: FacebookPhoto) {
+        val intent = Intent()
         val bundle = Bundle()
-        bundle.putParcelable(FacebookJobManager.FACEBOOK_PHOTO, facebookItem)
-        intent.putExtra(FacebookJobManager.FACEBOOK_PHOTO, bundle)
-        LocalBroadcastManager.getInstance(this@FacebookAlbumsActivity).sendBroadcast(intent)
-        Log.d(TAG, "Broadcast with facebook photo sent! Photo data = " + facebookItem.toString())
-        this.finish()
+        bundle.putParcelable(FacebookPhotosActivity.FACEBOOK_PHOTO_ITEM, facebookPhoto)
+        intent.putExtra(FacebookPhotosActivity.FACEBOOK_PHOTO_ITEM, bundle)
+        intent.setAction("FACEBOOK")
+        setResult(Activity.RESULT_OK, intent)
+        this@FacebookAlbumsActivity.finish()
     }
 
     private fun destroyAndNotifyUser() {
