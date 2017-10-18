@@ -43,7 +43,6 @@ class FacebookLoginRequest {
             val loginManager = LoginManager.getInstance()
             //don't modify this to VAL otherwise the activity that implements the callback will be STATIC! ==> Memory leak!
             loginManager.registerCallback(callbackManager, loginResultCallback)
-            //todo : somehow send the activity here using the PROTOCOL
             loginManager.logInWithReadPermissions(activity, Arrays.asList(PERMISSION_USER_PHOTOS))
         } else {
             Log.e(TAG, "ACTIVITY IS NULL!")

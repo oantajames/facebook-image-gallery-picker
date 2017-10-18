@@ -24,7 +24,6 @@ abstract class BaseJob : JobService() {
     }
 
     override fun onStartJob(p0: JobParameters?): Boolean {
-        //todo - maybe execute onJobStart on a background thread
         return onJobStart(p0)
     }
 

@@ -17,7 +17,6 @@ import com.imagepicker.facebook.model.FacebookPhoto
 /**
  * @author james on 10/10/17.
  */
-//todo: -> try to do this on a background thread
 class FacebookPhotosRequestCallback constructor(
         var albumId: String,
         val callbackStatus: PhotosCallbackStatus
@@ -72,7 +71,6 @@ class FacebookPhotosRequestCallback constructor(
             }
             var nextGraphRequest = graphResponse.getRequestForPagedResults(GraphResponse.PagingDirection.NEXT)
             if (nextGraphRequest != null) {
-                //todo- check if access token has been removed!
                 FacebookJobManager.getInstance().nextPageGraphRequest = nextGraphRequest
             }
             callbackStatus.onComplete(photoArrayList, nextGraphRequest != null)
