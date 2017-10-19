@@ -45,8 +45,6 @@ class FacebookPhotosActivity : AppCompatActivity(), BaseRecyclerAdapter.EndlessS
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_facebook_album_gallery)
-        registerReceiver()
-
         val extras = intent.extras
         if (extras != null) {
             albumId = extras.getString(FacebookAlbumsActivity().FACEBOOK_ALBUM_ID)
@@ -68,6 +66,34 @@ class FacebookPhotosActivity : AppCompatActivity(), BaseRecyclerAdapter.EndlessS
         recyclerView.adapter = adapter
         if (albumId != null)
             facebookJobManager.getPhotos(albumId!!)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        registerReceiver()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        LocalBroadcastManager.getInstance(applicationContext).unregisterReceiver(broadcastReceiver)
+    }
+
+    //todo - rxbroadcast
+    private val broadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val action = intent.action
+            if (action == PhotosJob.BROADCAST_PHOTOS_SUCCESS) {
+                if (intent.extras != null) {
+                    val list: ArrayList<FacebookPhoto> = intent.extras.getParcelableArrayList(PhotosJob.PHOTOS_LIST)
+                    Log.d(TAG, list.toString())
+                    adapter.loadMoreItems = intent.extras.getBoolean(PhotosJob.HAS_NEXT_PAGE)
+                    progressBar.visibility = View.INVISIBLE
+                    adapter.addItems(list as MutableList<FacebookPhoto>)
+                }
+            } else if (action == PhotosJob.BROADCAST_PHOTOS_ERROR) {
+                destroyAndNotifyUser()
+            }
+        }
     }
 
     private fun registerReceiver() {
@@ -95,23 +121,6 @@ class FacebookPhotosActivity : AppCompatActivity(), BaseRecyclerAdapter.EndlessS
         FacebookJobManager.getInstance()
                 .startPhotosJob(FacebookJobManager.getInstance().nextPageGraphRequest)
 
-    }
-
-    private val broadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val action = intent.action
-            if (action == PhotosJob.BROADCAST_PHOTOS_SUCCESS) {
-                if (intent.extras != null) {
-                    val list: ArrayList<FacebookPhoto> = intent.extras.getParcelableArrayList(PhotosJob.PHOTOS_LIST)
-                    Log.d(TAG, list.toString())
-                    adapter.loadMoreItems = intent.extras.getBoolean(PhotosJob.HAS_NEXT_PAGE)
-                    progressBar.visibility = View.INVISIBLE
-                    adapter.addItems(list as MutableList<FacebookPhoto>)
-                }
-            } else if (action == PhotosJob.BROADCAST_PHOTOS_ERROR) {
-                destroyAndNotifyUser()
-            }
-        }
     }
 
     private fun destroyAndNotifyUser() {

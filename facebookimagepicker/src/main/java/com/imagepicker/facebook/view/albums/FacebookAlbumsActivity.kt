@@ -49,7 +49,6 @@ class FacebookAlbumsActivity : AppCompatActivity(),
         setContentView(R.layout.activity_facebook_album_gallery)
         FacebookSdk.sdkInitialize(applicationContext)
 
-        registerReceiver()
         FacebookJobManager.getInstance().init(this@FacebookAlbumsActivity)
         recyclerView = findViewById(R.id.facebook_recycler_view)
         progressBar = findViewById(R.id.progress_bar)
@@ -61,6 +60,16 @@ class FacebookAlbumsActivity : AppCompatActivity(),
 
         initAdapter()
         facebookJobManager.getAlbums()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        registerReceiver()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        LocalBroadcastManager.getInstance(applicationContext).unregisterReceiver(broadcastReceiver)
     }
 
     private fun registerReceiver() {
@@ -91,10 +100,6 @@ class FacebookAlbumsActivity : AppCompatActivity(),
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (data != null) {
@@ -121,6 +126,7 @@ class FacebookAlbumsActivity : AppCompatActivity(),
         startActivityForResult(intent, FACEBOOK_PHOTO_RESULT)
     }
 
+    //todo - rxbroadcast
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action

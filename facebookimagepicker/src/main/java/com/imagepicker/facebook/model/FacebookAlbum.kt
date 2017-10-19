@@ -12,8 +12,7 @@ class FacebookAlbum(val albumId: String, val coverPhotoUrl: String, val albumCou
             parcel.readString(),
             parcel.readString(),
             parcel.readString(),
-            parcel.readString()) {
-    }
+            parcel.readString())
 
     override fun writeToParcel(targetParcel: Parcel, flags: Int) {
         targetParcel.writeValue(albumId)

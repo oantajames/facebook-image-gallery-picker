@@ -90,6 +90,7 @@ open class FacebookAlbumsRequestCallback constructor(
             var nextGraphRequest = graphResponse.getRequestForPagedResults(GraphResponse.PagingDirection.NEXT)
             if (nextGraphRequest != null) {
                 FacebookJobManager.getInstance().nextPageGraphRequest = nextGraphRequest
+                nextGraphRequest.executeAsync()
             }
             callbackStatus.onComplete(albumsList, nextGraphRequest != null)
         } else {
