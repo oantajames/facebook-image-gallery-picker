@@ -1,43 +1,44 @@
 package com.imagepicker.facebook.callbacks
 
-import android.app.Activity
 import android.util.Log
+import com.facebook.AccessToken
 import com.facebook.FacebookRequestError
 import com.facebook.GraphRequest
 import com.facebook.GraphResponse
-import com.facebook.login.LoginManager
-import com.imagepicker.facebook.BaseGraphRequest
-import com.imagepicker.facebook.FacebookCallFactory
-import com.imagepicker.facebook.model.FacebookPhoto
-import com.imagepicker.facebook.requests.FacebookPhotosRequest
+import com.imagepicker.facebook.jobs.utils.FacebookJobManager
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.net.MalformedURLException
 import java.net.URL
 import java.util.ArrayList
+import com.imagepicker.facebook.model.FacebookPhoto
 
 /**
  * @author james on 10/10/17.
  */
-
 class FacebookPhotosRequestCallback constructor(
         var albumId: String,
-        var pendingRequest: BaseGraphRequest<*>?,
-        var nextGraphRequest: GraphRequest?,
-        private val photosCallback: FacebookCallFactory.PhotosCallback?,
-        val activity: Activity
+        val callbackStatus: PhotosCallbackStatus
 ) : GraphRequest.Callback {
+
+    interface PhotosCallbackStatus {
+        fun onComplete(list: ArrayList<FacebookPhoto>, hasMorePages: Boolean)
+        fun onError()
+    }
 
     val TAG = FacebookPhotosRequestCallback::class.java.toString()
 
+    val JSON_NAME_DATA = "data"
+    val JSON_NAME_ID = "id"
     val JSON_NAME_PICTURE = "picture"
     val JSON_NAME_IMAGES = "images"
     val JSON_NAME_WIDTH = "width"
+    val JSON_NAME_HEIGHT = "height"
     val JSON_NAME_SOURCE = "source"
 
     override fun onCompleted(graphResponse: GraphResponse) {
-        Log.d(FacebookCallFactory.TAG, "Graph response: " + graphResponse)
+        Log.d(TAG, "Graph response: " + graphResponse)
         val error = graphResponse.error
         if (checkForErrors(error, graphResponse)) return
 
@@ -47,33 +48,34 @@ class FacebookPhotosRequestCallback constructor(
 
     private fun getResponseData(responseJSONObject: JSONObject?, graphResponse: GraphResponse) {
         if (responseJSONObject != null) {
-            Log.d(FacebookCallFactory.TAG, "Response object: " + responseJSONObject.toString())
-            val dataJSONArray = responseJSONObject.optJSONArray(FacebookCallFactory.JSON_NAME_DATA)
+            Log.d(TAG, "Response object: " + responseJSONObject.toString())
+            val dataJSONArray = responseJSONObject.optJSONArray(JSON_NAME_DATA)
             val photoArrayList = ArrayList<FacebookPhoto>(dataJSONArray.length())
             for (photoIndex in 0 until dataJSONArray.length()) {
                 try {
                     val photoJSONObject = dataJSONArray.getJSONObject(photoIndex)
 
-                    val id = photoJSONObject.getString(FacebookCallFactory.JSON_NAME_ID)
+                    val id = photoJSONObject.getString(JSON_NAME_ID)
                     val picture = photoJSONObject.getString(JSON_NAME_PICTURE)
                     val imageJSONArray = photoJSONObject.getJSONArray(JSON_NAME_IMAGES)
 
                     val largestImageSource = getLargestImageSource(imageJSONArray)
-                    val photo = FacebookPhoto(URL(picture), URL(largestImageSource), id)
+                    val photo = FacebookPhoto(URL(largestImageSource), URL(picture), id)
 
                     photoArrayList.add(photo)
                 } catch (je: JSONException) {
-                    Log.e(FacebookCallFactory.TAG, "Unable to extract photo data from JSON: " + responseJSONObject.toString(), je)
+                    Log.e(TAG, "Unable to extract photo data from JSON: " + responseJSONObject.toString(), je)
                 } catch (mue: MalformedURLException) {
-                    Log.e(FacebookCallFactory.TAG, "Invalid URL in JSON: " + responseJSONObject.toString(), mue)
+                    Log.e(TAG, "Invalid URL in JSON: " + responseJSONObject.toString(), mue)
                 }
-
             }
-            nextGraphRequest = graphResponse.getRequestForPagedResults(GraphResponse.PagingDirection.NEXT)
-            if (photosCallback != null)
-                photosCallback.onPhotosSuccess(photoArrayList, nextGraphRequest != null)
+            var nextGraphRequest = graphResponse.getRequestForPagedResults(GraphResponse.PagingDirection.NEXT)
+            if (nextGraphRequest != null) {
+                FacebookJobManager.getInstance().nextPageGraphRequest = nextGraphRequest
+            }
+            callbackStatus.onComplete(photoArrayList, nextGraphRequest != null)
         } else {
-            Log.e(FacebookCallFactory.TAG, "No JSON found in graph response")
+            Log.e(TAG, "No JSON found in graph response")
         }
     }
 
@@ -82,19 +84,17 @@ class FacebookPhotosRequestCallback constructor(
             Log.e(TAG, "Facebook error: " + error.toString())
             when (error.category) {
                 FacebookRequestError.Category.LOGIN_RECOVERABLE -> {
-
-                    Log.e(FacebookCallFactory.TAG, "LOGIN_RECOVERABLE ERROR")
-                    pendingRequest = FacebookPhotosRequest(albumId, pendingRequest, nextGraphRequest, photosCallback, activity)
-                    LoginManager.getInstance().resolveError(activity, graphResponse)
+                    Log.e(TAG, "LOGIN_RECOVERABLE ERROR")
+                    callbackStatus.onError()
                     return true
                 }
                 FacebookRequestError.Category.TRANSIENT -> {
-                    FacebookCallFactory.getInstance(activity).getPhotos(albumId, photosCallback)
+//                    FacebookCallFactory.getInstance(activity).getPhotos(albumId, photosCallback)
+                    callbackStatus.onError()
                     return true
                 }
                 else -> {
-                    if (photosCallback != null)
-                        photosCallback.onError(error.exception)
+                    callbackStatus.onError()
                     return true
                 }
             }
@@ -104,7 +104,6 @@ class FacebookPhotosRequestCallback constructor(
 
     private fun getLargestImageSource(imageJSONArray: JSONArray?): String? {
         if (imageJSONArray == null) return null
-
         val imageCount = imageJSONArray.length()
         var largestImageWidth = 0
         var largestImageSource: String? = null
