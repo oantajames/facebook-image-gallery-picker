@@ -47,10 +47,9 @@ class LoginJob : BaseJob() {
                 //don't reschedule the job, because we destroy the activity
                 jobFinished(jobParameters!!, false)
             }
-        }, FacebookJobManager.getInstance().callbackManager)
+        })
         return true
     }
-
 
     private fun sendCancelBroadcast() {
         val intent = Intent(BROADCAST_FACEBOOK_LOGIN_ERROR)
@@ -61,6 +60,5 @@ class LoginJob : BaseJob() {
         val intent = Intent(BROADCAST_FACEBOOK_LOGIN_ERROR)
         LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
     }
-
 
 }

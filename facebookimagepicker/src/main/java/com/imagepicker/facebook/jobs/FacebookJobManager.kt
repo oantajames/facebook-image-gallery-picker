@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.support.v4.app.FragmentActivity
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import com.facebook.CallbackManager
@@ -24,8 +25,6 @@ class FacebookJobManager private constructor() {
     val TAG = FacebookJobManager::class.java.simpleName
 
     companion object {
-        val BROADCAST_FACEBOOK_PHOTO_SELECTED = "BROADCAST_FACEBOOK_PHOTO_SELECTED"
-        val FACEBOOK_PHOTO = "FACEBOOK_PHOTO"
 
         @SuppressLint("StaticFieldLeak")
         private var INSTANCE: FacebookJobManager? = null
@@ -39,15 +38,10 @@ class FacebookJobManager private constructor() {
     }
 
     fun attachActivity(newActivity: Activity) {
-        if (!isActivityAttached) {
-            dispatcher = FirebaseJobDispatcher(GooglePlayDriver(newActivity.applicationContext))
-            callbackManager = CallbackManager.Factory.create()
-            //we need to make sure the activity is set on this request!
-            FacebookLoginRequest.getInstance().activity = newActivity
-            isActivityAttached = true
-        } else {
-            Log.e(TAG, "Activity is not attached to the facebook job manager!")
-        }
+        dispatcher = FirebaseJobDispatcher(GooglePlayDriver(newActivity.applicationContext))
+        //we need to make sure the activity is set on this request!
+        FacebookLoginRequest.getInstance().activity = newActivity
+        isActivityAttached = true
     }
 
     val ALBUMS_JOB = "ALBUMS_JOB"
@@ -63,10 +57,9 @@ class FacebookJobManager private constructor() {
 
     lateinit var activity: AppCompatActivity
     lateinit var dispatcher: FirebaseJobDispatcher
-    lateinit var callbackManager: CallbackManager
 
-    fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
-        callbackManager.onActivityResult(requestCode, resultCode, data)
+    fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent, activity: FragmentActivity) {
+        FacebookLoginRequest.getInstance().onActivityResult(requestCode, resultCode, data)
     }
 
     fun getAlbums() {

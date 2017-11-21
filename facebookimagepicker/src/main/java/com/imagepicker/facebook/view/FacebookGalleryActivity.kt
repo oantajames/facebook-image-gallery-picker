@@ -45,7 +45,6 @@ class FacebookGalleryActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_facebook_gallery)
         supportActionBar?.setDisplayHomeAsUpEnabled(true);
-
         FacebookSdk.sdkInitialize(applicationContext)
         FacebookJobManager.getInstance().attachActivity(this)
 

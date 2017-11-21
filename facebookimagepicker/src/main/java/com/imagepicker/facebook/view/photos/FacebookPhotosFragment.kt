@@ -83,8 +83,8 @@ class FacebookPhotosFragment : android.support.v4.app.Fragment(),
         registerReceiver()
     }
 
-    override fun onPause() {
-        super.onPause()
+    override fun onStop() {
+        super.onStop()
         LocalBroadcastManager.getInstance(activity.applicationContext).unregisterReceiver(broadcastReceiver)
     }
 
@@ -114,7 +114,7 @@ class FacebookPhotosFragment : android.support.v4.app.Fragment(),
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (data != null) {
-            FacebookJobManager.getInstance().onActivityResult(requestCode, resultCode, data)
+            FacebookJobManager.getInstance().onActivityResult(requestCode, resultCode, data, activity)
         } else {
             Log.e(TAG, "OnActivityResult data is null!")
         }

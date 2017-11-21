@@ -15,7 +15,7 @@ import javax.inject.Inject
 /**
  * @author james on 10/15/17.
  */
-class AlbumsJob @Inject constructor() : BaseJob() {
+class AlbumsJob : BaseJob() {
 
     companion object {
         val ALBUMS_LIST = "ALBUMS_LIST"
@@ -24,7 +24,6 @@ class AlbumsJob @Inject constructor() : BaseJob() {
         val HAS_NEXT_PAGE = "HAS_NEXT_PAGE"
     }
 
-    @Inject
     lateinit var facebookJobManager: FacebookJobManager
 
     override fun onJobStart(jobParameters: JobParameters?): Boolean {
@@ -44,7 +43,7 @@ class AlbumsJob @Inject constructor() : BaseJob() {
         val albumsRequest = FacebookAlbumsRequest(albumCallback)
         //check if there is a next page request ready to use
         if (jobParameters != null) {
-            if (jobParameters.extras != null && jobParameters.extras!!.getBoolean(HAS_NEXT_PAGE)) {
+            if (jobParameters.extras != null && jobParameters.extras?.getBoolean(HAS_NEXT_PAGE)!!) {
                 albumsRequest.nextGraphRequest = facebookJobManager.nextPageGraphRequest!!
             }
         }

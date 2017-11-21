@@ -3,7 +3,6 @@ package com.imagepicker.facebook.requests
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
-import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import com.facebook.CallbackManager
 import com.facebook.login.LoginManager
@@ -33,11 +32,15 @@ class FacebookLoginRequest {
 
     private val PERMISSION_USER_PHOTOS = "user_photos"
 
+    var callbackManager: CallbackManager = CallbackManager.Factory.create()
 
-    fun startLogin(loginResultCallback: FacebookLoginResultCallback, callbackManager:CallbackManager) {
+    fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+        callbackManager.onActivityResult(requestCode, resultCode, data)
+    }
+
+    fun startLogin(loginResultCallback: FacebookLoginResultCallback) {
         if (activity != null) {
             val loginManager = LoginManager.getInstance()
-            //don't modify this to VAL otherwise the activity that implements the callback will be STATIC! ==> Memory leak!
             loginManager.registerCallback(callbackManager, loginResultCallback)
             loginManager.logInWithReadPermissions(activity, Arrays.asList(PERMISSION_USER_PHOTOS))
         } else {
