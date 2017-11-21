@@ -5,7 +5,6 @@ android {
     compileSdkVersion 26
     buildToolsVersion '26.0.2'
 
-
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 26
@@ -24,20 +23,25 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation supportDependencies.appCompat
 
-    implementation 'com.android.support:appcompat-v7:26.1.0'
-    testImplementation 'junit:junit:4.12'
-    compile 'com.firebase:firebase-jobdispatcher:0.8.3'
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
-    compile 'com.facebook.android:facebook-android-sdk:4.27.0'
-    compile 'com.android.support:recyclerview-v7:26.1.0'
-    compile 'com.squareup.picasso:picasso:2.5.2'
-    compile 'com.android.support:appcompat-v7:26.1.0'
-    compile 'com.android.support:design:26.1.0'
+    testImplementation testDependencies.junit
+    androidTestImplementation testDependencies.testRunner
+    androidTestImplementation testDependencies.espresso
+    compile thirdParty.kotlin
+    compile openSourceDependencies.firebaseJobDispatcher
+    compile thirdParty.facebook
+    compile supportDependencies.recyclerView
+    compile openSourceDependencies.picasso
+    compile supportDependencies.appCompat
+    compile supportDependencies.designSupport
+    compile openSourceDependencies.rxJava
+    compile openSourceDependencies.rxAndroid
+    compile openSourceDependencies.dagger
+    kapt openSourceDependencies.daggerCompiler
 }
 
 repositories {
     mavenCentral()
 }
+

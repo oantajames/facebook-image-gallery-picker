@@ -1,9 +1,5 @@
 package com.imagepicker.facebook.view.albums
 
-/**
- * @author james on 10/11/17.
- */
-
 import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.view.ViewGroup
@@ -18,7 +14,8 @@ import com.imagepicker.facebook.view.BaseRecyclerAdapter
 /**
  * @author james on 10/11/17.
  */
-class FacebookAlbumsAdapter constructor(var albumAction: AlbumAction) : BaseRecyclerAdapter<FacebookAlbumsAdapter.ViewHolder, FacebookAlbum>() {
+class FacebookAlbumsAdapter constructor(var albumAction: AlbumAction)
+    : BaseRecyclerAdapter<FacebookAlbumsAdapter.ViewHolder, FacebookAlbum>() {
 
     interface AlbumAction {
         fun onAlbumClicked(albumItem: FacebookAlbum)

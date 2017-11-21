@@ -1,4 +1,4 @@
-package com.imagepicker.facebook.jobs
+package com.imagepicker.facebook.jobs.jobslist
 
 import android.content.Intent
 import android.support.v4.content.LocalBroadcastManager
@@ -7,8 +7,8 @@ import com.facebook.FacebookException
 import com.facebook.login.LoginResult
 import com.firebase.jobdispatcher.JobParameters
 import com.imagepicker.facebook.callbacks.FacebookLoginResultCallback
+import com.imagepicker.facebook.jobs.FacebookJobManager
 import com.imagepicker.facebook.jobs.utils.BaseJob
-import com.imagepicker.facebook.jobs.utils.FacebookJobManager
 import com.imagepicker.facebook.requests.FacebookLoginRequest
 
 /**
@@ -51,16 +51,14 @@ class LoginJob : BaseJob() {
         return true
     }
 
-
     private fun sendCancelBroadcast() {
-        val intent = Intent(LoginJob.BROADCAST_FACEBOOK_LOGIN_ERROR)
+        val intent = Intent(BROADCAST_FACEBOOK_LOGIN_ERROR)
         LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
     }
 
     private fun sendErrorBroadcast() {
-        val intent = Intent(LoginJob.BROADCAST_FACEBOOK_LOGIN_ERROR)
+        val intent = Intent(BROADCAST_FACEBOOK_LOGIN_ERROR)
         LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
     }
-
 
 }

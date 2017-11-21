@@ -5,7 +5,7 @@ import com.facebook.AccessToken
 import com.facebook.FacebookRequestError
 import com.facebook.GraphRequest
 import com.facebook.GraphResponse
-import com.imagepicker.facebook.jobs.utils.FacebookJobManager
+import com.imagepicker.facebook.jobs.FacebookJobManager
 import com.imagepicker.facebook.model.FacebookAlbum
 import org.json.JSONException
 import org.json.JSONObject
