@@ -5,60 +5,50 @@
     <application>
 
         <activity
-            android:name="com.imagepicker.facebook.view.albums.FacebookAlbumsActivity"
-            android:icon="@drawable/facebook"
-            android:label="@string/facebook"
-            android:launchMode="standard"
-            android:screenOrientation="portrait"
-            android:theme="@style/ImagePickerTheme"/>
-
-        <activity
-            android:name="com.imagepicker.facebook.view.photos.FacebookPhotosActivity"
-            android:icon="@drawable/facebook"
-            android:label="@string/facebook"
-            android:launchMode="standard"
-            android:screenOrientation="portrait"
-            android:theme="@style/ImagePickerTheme"/>
-
-        <activity
             android:name="com.facebook.FacebookActivity"
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
-            tools:replace="android:theme"/>
+            tools:replace="android:theme" />
+
+        <activity
+            android:name="com.imagepicker.facebook.view.FacebookGalleryActivity"
+            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
+            android:screenOrientation="portrait"
+            android:theme="@style/ImagePickerTheme" />
 
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
-            android:value="@string/facebook_app_id"/>
+            android:value="@string/facebook_app_id" />
 
         <service
-            android:name="com.imagepicker.facebook.jobs.AlbumsJob"
+            android:name="com.imagepicker.facebook.jobs.jobslist.AlbumsJob"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE"/>
+                <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE" />
             </intent-filter>
         </service>
 
         <service
-            android:name="com.imagepicker.facebook.jobs.LoginJob"
+            android:name="com.imagepicker.facebook.jobs.jobslist.LoginJob"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE"/>
+                <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE" />
             </intent-filter>
         </service>
 
         <service
-            android:name="com.imagepicker.facebook.jobs.PhotosJob"
+            android:name="com.imagepicker.facebook.jobs.jobslist.PhotosJob"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE"/>
+                <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE" />
             </intent-filter>
         </service>
 
         <service
-            android:name="com.imagepicker.facebook.jobs.VerifyAccessTokenJob"
+            android:name="com.imagepicker.facebook.jobs.jobslist.VerifyAccessTokenJob"
             android:exported="true">
             <intent-filter>
-                <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE"/>
+                <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE" />
             </intent-filter>
         </service>
 

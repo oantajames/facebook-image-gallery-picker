@@ -1,12 +1,12 @@
-package com.imagepicker.facebook.jobs
+package com.imagepicker.facebook.jobs.jobslist
 
 import android.content.Intent
 import android.os.Bundle
 import android.support.v4.content.LocalBroadcastManager
 import com.firebase.jobdispatcher.JobParameters
 import com.imagepicker.facebook.callbacks.FacebookPhotosRequestCallback
+import com.imagepicker.facebook.jobs.FacebookJobManager
 import com.imagepicker.facebook.jobs.utils.BaseJob
-import com.imagepicker.facebook.jobs.utils.FacebookJobManager
 import com.imagepicker.facebook.model.FacebookPhoto
 import com.imagepicker.facebook.requests.FacebookPhotosRequest
 
@@ -41,7 +41,7 @@ class PhotosJob : BaseJob() {
         val photosRequest = FacebookPhotosRequest(FacebookJobManager.getInstance().getAlbumId(jobParameters)!!, photogetsCallback)
         //check if there is a next page request ready to use
         if (jobParameters != null) {
-            if (jobParameters.extras != null && jobParameters.extras!!.getBoolean(PhotosJob.HAS_NEXT_PAGE)) {
+            if (jobParameters.extras != null && jobParameters.extras!!.getBoolean(HAS_NEXT_PAGE)) {
                 photosRequest.nextGraphRequest = FacebookJobManager.getInstance().nextPageGraphRequest!!
             }
         }
@@ -59,7 +59,7 @@ class PhotosJob : BaseJob() {
     }
 
     private fun sendErrorBroadcast() {
-        val intent = Intent(PhotosJob.BROADCAST_PHOTOS_ERROR)
+        val intent = Intent(BROADCAST_PHOTOS_ERROR)
         LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
     }
 

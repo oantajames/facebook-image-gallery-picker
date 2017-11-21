@@ -1,11 +1,9 @@
 package com.imagepicker.facebook.callbacks
 
 import android.util.Log
-import com.facebook.AccessToken
 import com.facebook.FacebookRequestError
 import com.facebook.GraphRequest
 import com.facebook.GraphResponse
-import com.imagepicker.facebook.jobs.utils.FacebookJobManager
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -71,7 +69,7 @@ class FacebookPhotosRequestCallback constructor(
             }
             var nextGraphRequest = graphResponse.getRequestForPagedResults(GraphResponse.PagingDirection.NEXT)
             if (nextGraphRequest != null) {
-                FacebookJobManager.getInstance().nextPageGraphRequest = nextGraphRequest
+//                FacebookJobManager.getInstance().nextPageGraphRequest = nextGraphRequest
             }
             callbackStatus.onComplete(photoArrayList, nextGraphRequest != null)
         } else {

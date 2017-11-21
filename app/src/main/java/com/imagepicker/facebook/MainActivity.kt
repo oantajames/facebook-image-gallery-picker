@@ -7,8 +7,7 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageView
 import com.imagepicker.facebook.model.FacebookPhoto
-import com.imagepicker.facebook.view.albums.FacebookAlbumsActivity
-import com.imagepicker.facebook.view.photos.FacebookPhotosActivity
+import com.imagepicker.facebook.view.FacebookGalleryActivity
 import com.squareup.picasso.Picasso
 
 class MainActivity : AppCompatActivity() {
@@ -21,9 +20,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         imageView = findViewById(R.id.selected_image)
-        var button = findViewById<Button>(R.id.button2)
+        val button = findViewById<Button>(R.id.button2)
         button.setOnClickListener({
-            val i = Intent(this, FacebookAlbumsActivity::class.java)
+            val i = Intent(this, FacebookGalleryActivity::class.java)
             startActivityForResult(i, FACEBOOK_PHOTO_RESULT)
         })
     }
@@ -32,8 +31,8 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == FACEBOOK_PHOTO_RESULT) {
             if (data != null) {
-                val bundle: Bundle = data.extras.getParcelable(FacebookPhotosActivity.FACEBOOK_PHOTO_ITEM)
-                val facebookItem: FacebookPhoto = bundle.getParcelable(FacebookPhotosActivity.FACEBOOK_PHOTO_ITEM)
+                val bundle: Bundle = data.extras.getParcelable(FacebookGalleryActivity.Companion.FACEBOOK_PHOTO_ITEM)
+                val facebookItem: FacebookPhoto = bundle.getParcelable(FacebookGalleryActivity.Companion.FACEBOOK_PHOTO_ITEM)
 
                 Picasso.with(this@MainActivity)
                         .load(Uri.parse(facebookItem.photoUrl.toURI().toString()))

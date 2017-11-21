@@ -7,65 +7,75 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.support.v4.content.LocalBroadcastManager
-import android.support.v7.app.AppCompatActivity
+import android.support.v7.app.ActionBar
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.StaggeredGridLayoutManager
 import android.util.Log
-import android.view.MenuItem
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.Toast
 import com.imagepicker.facebook.facebookimagepicker.R
-import com.imagepicker.facebook.jobs.PhotosJob
-import com.imagepicker.facebook.jobs.utils.FacebookJobManager
+import com.imagepicker.facebook.jobs.jobslist.PhotosJob
+import com.imagepicker.facebook.jobs.FacebookJobManager
 import com.imagepicker.facebook.model.FacebookPhoto
 import com.imagepicker.facebook.view.BaseRecyclerAdapter
-import com.imagepicker.facebook.view.albums.FacebookAlbumsActivity
+import com.imagepicker.facebook.view.FacebookGalleryActivity
+import android.support.v7.app.AppCompatActivity
+import com.imagepicker.facebook.view.FacebookGalleryActivity.Companion.FACEBOOK_PHOTO_ITEM
 
-/**
- * @author james on 10/11/17.
- */
 
-class FacebookPhotosActivity : AppCompatActivity(), BaseRecyclerAdapter.EndlessScrollListener, FacebookPhotosAdapter.PhotosAction {
+class FacebookPhotosFragment : android.support.v4.app.Fragment(),
+        BaseRecyclerAdapter.EndlessScrollListener, FacebookPhotosAdapter.PhotosAction {
 
     companion object {
-        val FACEBOOK_PHOTO_ITEM = "FACEBOOK_PHOTO_ITEM"
+
+        fun getBundle(albumId: String, albumTitle: String): Bundle {
+            val bundle = Bundle()
+            bundle.putString(FacebookGalleryActivity.Companion.FACEBOOK_ALBUM_ID, albumId)
+            bundle.putString(FacebookGalleryActivity.Companion.FACEBOOK_ALBUM_TITLE, albumTitle)
+            return bundle
+        }
     }
 
-    val TAG: String = FacebookAlbumsActivity::class.java.simpleName
+    val TAG: String = FacebookPhotosFragment::class.java.simpleName
 
     lateinit var facebookJobManager: FacebookJobManager
     lateinit var recyclerView: RecyclerView
     lateinit var adapter: FacebookPhotosAdapter
     lateinit var progressBar: ProgressBar
+    lateinit var supportActionBar: ActionBar
 
     var albumId: String? = null
     var albumTitle: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_facebook_album_gallery)
-        val extras = intent.extras
-        if (extras != null) {
-            albumId = extras.getString(FacebookAlbumsActivity().FACEBOOK_ALBUM_ID)
-            albumTitle = extras.getString(FacebookAlbumsActivity().FACEBOOK_ALBUM_TITLE)
+
+    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        val view = inflater!!.inflate(R.layout.activity_facebook_album_gallery, container, false)
+
+        if (arguments != null) {
+            albumId = arguments.getString(FacebookGalleryActivity.Companion.FACEBOOK_ALBUM_ID)
+            albumTitle = arguments.getString(FacebookGalleryActivity.Companion.FACEBOOK_ALBUM_TITLE)
         }
 
-        supportActionBar?.setDisplayHomeAsUpEnabled(true);
-        supportActionBar?.title = albumTitle
+        supportActionBar = (activity as AppCompatActivity).supportActionBar!!
 
-        progressBar = findViewById(R.id.progress_bar)
-        recyclerView = findViewById(R.id.facebook_recycler_view)
+        supportActionBar.title = albumTitle
+
+        progressBar = view.findViewById(R.id.progress_bar)
+        recyclerView = view.findViewById(R.id.facebook_recycler_view)
         facebookJobManager = FacebookJobManager.getInstance()
-        adapter = FacebookPhotosAdapter(this@FacebookPhotosActivity)
-        adapter.setEndlessScrollListener(this@FacebookPhotosActivity)
-
+        adapter = FacebookPhotosAdapter(this)
+        adapter.setEndlessScrollListener(this)
 
         val layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = adapter
         if (albumId != null)
             facebookJobManager.getPhotos(albumId!!)
+
+        return view
     }
 
     override fun onResume() {
@@ -75,10 +85,9 @@ class FacebookPhotosActivity : AppCompatActivity(), BaseRecyclerAdapter.EndlessS
 
     override fun onPause() {
         super.onPause()
-        LocalBroadcastManager.getInstance(applicationContext).unregisterReceiver(broadcastReceiver)
+        LocalBroadcastManager.getInstance(activity.applicationContext).unregisterReceiver(broadcastReceiver)
     }
 
-    //todo - rxbroadcast
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action
@@ -99,21 +108,15 @@ class FacebookPhotosActivity : AppCompatActivity(), BaseRecyclerAdapter.EndlessS
     private fun registerReceiver() {
         val intentFilter = IntentFilter()
         intentFilter.addAction(PhotosJob.BROADCAST_PHOTOS_SUCCESS)
-        LocalBroadcastManager.getInstance(applicationContext).registerReceiver(broadcastReceiver, intentFilter)
+        LocalBroadcastManager.getInstance(activity.applicationContext).registerReceiver(broadcastReceiver, intentFilter)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        facebookJobManager.onActivityResult(requestCode, resultCode, data, this@FacebookPhotosActivity)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        when (item?.getItemId()) {
-            android.R.id.home -> {
-                this.finish()
-                return true
-            }
-            else -> return super.onOptionsItemSelected(item)
+        if (data != null) {
+            FacebookJobManager.getInstance().onActivityResult(requestCode, resultCode, data)
+        } else {
+            Log.e(TAG, "OnActivityResult data is null!")
         }
     }
 
@@ -124,8 +127,8 @@ class FacebookPhotosActivity : AppCompatActivity(), BaseRecyclerAdapter.EndlessS
     }
 
     private fun destroyAndNotifyUser() {
-        Toast.makeText(this@FacebookPhotosActivity, "Something went wrong, please try again.", Toast.LENGTH_SHORT).show()
-        this@FacebookPhotosActivity.finish()
+        Toast.makeText(activity, "Something went wrong, please try again.", Toast.LENGTH_SHORT).show()
+        activity.finish()
     }
 
     override fun onPhotosClicked(facebookItem: FacebookPhoto) {
@@ -133,8 +136,8 @@ class FacebookPhotosActivity : AppCompatActivity(), BaseRecyclerAdapter.EndlessS
         val bundle = Bundle()
         bundle.putParcelable(FACEBOOK_PHOTO_ITEM, facebookItem)
         intent.putExtra(FACEBOOK_PHOTO_ITEM, bundle)
-        setResult(Activity.RESULT_OK, intent)
-        this@FacebookPhotosActivity.finish()
+        activity.setResult(Activity.RESULT_OK, intent)
+        activity.finish()
     }
 
 }

@@ -1,9 +1,9 @@
-package com.imagepicker.facebook.jobs
+package com.imagepicker.facebook.jobs.jobslist
 
 import com.facebook.AccessToken
 import com.firebase.jobdispatcher.JobParameters
+import com.imagepicker.facebook.jobs.FacebookJobManager
 import com.imagepicker.facebook.jobs.utils.BaseJob
-import com.imagepicker.facebook.jobs.utils.FacebookJobManager
 
 /**
  * @author james on 10/15/17.
